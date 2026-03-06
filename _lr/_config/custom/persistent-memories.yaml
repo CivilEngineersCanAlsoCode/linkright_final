@@ -1,0 +1,55 @@
+# Persistent Memory Governance
+# Project: Linkright (Sync Project)
+
+# This file defines the long-term memory configuration for each Linkright module.
+
+# CORE MODULE
+core:
+  storage: "memory/core/"
+  strategy: "summary_retention"
+  layers:
+    - id: "global-signals"
+      type: "json"
+      persistence: "permanent"
+
+# LRB MODULE (Meta-Programming)
+lrb:
+  storage: "memory/lrb/"
+  strategy: "structural_sync"
+  layers:
+    - id: "agent-templates"
+      type: "markdown"
+      persistence: "session"
+    - id: "module-architecture"
+      type: "json"
+      persistence: "permanent"
+
+# SYNC MODULE (Signal Processing)
+sync:
+  storage: "memory/sync/"
+  strategy: "vector_backlink"
+  layers:
+    - id: "processed-signals"
+      type: "vector"
+      persistence: "permanent"
+    - id: "company-intel"
+      type: "markdown"
+      persistence: "rolling_90d"
+
+# SQUICK MODULE (Quick-Flow)
+squick:
+  storage: "memory/squick/"
+  strategy: "ephemeral_flush"
+  layers:
+    - id: "temp-tech-specs"
+      type: "markdown"
+      persistence: "session"
+
+# FLEX MODULE
+flex:
+  storage: "memory/flex/"
+  strategy: "brief_retention"
+  layers:
+    - id: "public-comms"
+      type: "markdown"
+      persistence: "permanent"

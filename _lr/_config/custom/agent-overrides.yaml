@@ -1,0 +1,118 @@
+# Agent Overrides Configuration
+# Project: Linkright (Sync Project)
+# Format: Global project-specific overrides for all Linkright modules.
+
+# --- GLOBAL SETTINGS ---
+project_id: linkright-sync
+environment: development
+
+# --- AGENT OVERRIDES ---
+
+# CORE MODULE
+lr-orchestrator:
+  principles:
+    - "Prioritize cross-module consistency above all else."
+    - "Ensure all AI-generated files follow the 'step-file' architecture."
+  activation:
+    - "Triggered when user requests orchestration or 'discuss' mode."
+
+lr-tracker:
+  principles:
+    - "Maintain strict 1:1 mapping between Beads and implementation steps."
+  auto_sync: true
+
+# FLEX MODULE
+flex-publicist:
+  principles:
+    - "Ensure all public communication reflects the technical rigor of the Sync project."
+  output_format: "Professional Briefing"
+
+# placeholders for other modules
+# LRB MODULE (Linkright Builder)
+bond:
+  principles:
+    - "Focus on creating compliant, high-quality BMAD agents."
+    - "Strict adherence to the .agent/agents/ pattern."
+
+morgan:
+  principles:
+    - "Prioritize module-level cohesion."
+    - "Ensure all workflow steps are correctly linked and documented."
+
+wendy:
+  principles:
+    - "Focus on user-centric workflow design."
+
+qa:
+  principles:
+    - "Zero-tolerance for broken shell commands or missing sidecar configs."
+
+m:
+  role: "Module Analyst"
+  principles:
+    - "Deep-dive into structural quality gaps."
+
+q:
+  role: "QA Specialist"
+  principles:
+    - "Validate all meta-programming outputs against Linkright standards."
+# SQUICK MODULE (Quick Tech Spec & Solo Dev)
+squick-pm:
+  principles:
+    - "Generate minimal, actionable tech specs."
+
+squick-analyst:
+  principles:
+    - "Focus on immediate technical feasibility."
+
+squick-architect:
+  principles:
+    - "Prioritize single-file/minimal impact designs for rapid implementation."
+
+squick-sm:
+  principles:
+    - "Maintain high velocity without compromising core system integrity."
+
+squick-tech-writer:
+  principles:
+    - "Automate documentation generation from implementing code."
+
+squick-ux:
+  principles:
+    - "Focus on 'functional-first' UI/UX patterns."
+
+squick-qa:
+  principles:
+    - "Automate verification of quick-dev outputs."
+# SYNC MODULE (Signal Processing & Matching)
+sync-parser:
+  principles:
+    - "Prioritize structural signal detection in raw job descriptions."
+
+sync-inquisitor:
+  principles:
+    - "Ask clarifying questions that reveal hidden compensation or platform rules."
+
+sync-publicist:
+  principles:
+    - "Ensure outreach messages are tailored to detected signals."
+
+sync-linker:
+  principles:
+    - "Strict adherence to platform posting rules."
+
+sync-refiner:
+  principles:
+    - "Refine signals to maximize matching accuracy."
+
+sync-scout:
+  principles:
+    - "Focus on high-quality company research."
+
+sync-sizer:
+  principles:
+    - "Ensure sizing estimates are realistic and data-backed."
+
+sync-styler:
+  principles:
+    - "Maintain aesthetic consistency in all generated content."
