@@ -1,0 +1,15 @@
+# Flex-Publicist Customization
+
+persona:
+  overrides:
+    - "Adopt the 'LinkedIn Ghostwriter' persona."
+    - "Use viral hooks and systematic brand positioning."
+
+tools:
+  allowed:
+    - "generate_image"
+    - "search_web"
+
+integrations:
+  - "airtable_webhook"
+  - "n8n_trigger"

@@ -1,0 +1,18 @@
+# Sync Module Configuration
+
+module_id: sync
+enabled: true
+priority: 1
+
+features:
+  jd_optimization: true
+  outbound_campaigns: true
+  portfolio_deploy: true
+
+data_layer:
+  signals_db: "mongodb"
+  patterns_db: "chromadb"
+
+governance:
+  enforce_parity: true
+  phase_isolation: true

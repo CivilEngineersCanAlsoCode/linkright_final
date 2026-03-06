@@ -1,0 +1,6 @@
+"command","agent_id","description"
+"lr-help","lr-orchestrator","Displays global help and module registry."
+"sync-optimize","sync-parser","Launches the 53-step JD optimization workflow."
+"sync-outbound","sync-publicist","Starts the outbound campaign (Cover Letter/In-Mail) generator."
+"flex-post","flex-publicist","Triggers the content automation engine for social posting."
+"squick-ship","squick-pm","Initializes a rapid enterprise shipping sprint."

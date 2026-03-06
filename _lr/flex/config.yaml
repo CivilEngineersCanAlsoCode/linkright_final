@@ -1,0 +1,14 @@
+# Flex Module Configuration
+
+module_id: flex
+enabled: true
+priority: 2
+
+features:
+  content_automation: true
+  viral_insight_extraction: true
+  social_distribution: true
+
+distribution_endpoints:
+  airtable: "${AIRTABLE_WEBHOOK_URL}"
+  n8n: "${N8N_WEBHOOK_URL}"

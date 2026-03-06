@@ -1,0 +1,33 @@
+# Linkright (lr) Global Configuration
+
+system:
+  name: Linkright
+  version: 4.0
+  identity: orchestrator
+  mode: modular
+
+modules:
+  core:
+    enabled: true
+    path: _lr/core
+  sync:
+    enabled: true
+    path: _lr/sync
+  flex:
+    enabled: true
+    path: _lr/flex
+  squick:
+    enabled: true
+    path: _lr/squick
+
+data_layers:
+  mongodb:
+    config: _lr/core/config/mongodb-config.yaml
+  chromadb:
+    config: _lr/core/config/chromadb-config.yaml
+
+distribution:
+  airtable:
+    url: "${AIRTABLE_WEBHOOK_URL}"
+  postiz:
+    url: "${POSTIZ_API_URL}"

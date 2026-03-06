@@ -1,0 +1,6 @@
+"file_id","path","description"
+"master-prompt","LINKRIGHT-MASTER-PROMPT-v4.md","Global system source of truth."
+"system-config","_lr/lr-config.yaml","Unified system configuration."
+"signal-library","_lr/core/knowledge/signals.json","Historical work signals (MongoDB stub)."
+"voice-profile","_lr/_memory/insights-sidecar/voice-profile.md","User brand voice definition."
+"agent-manifest","_lr/_config/agent-manifest.csv","Registry of all system agents."

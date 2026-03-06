@@ -1,0 +1,6 @@
+"party_id","agent_id","role","responsibility"
+"outbound-party","sync-scout","Researcher","Company and stakeholder discovery."
+"outbound-party","sync-parser","Analyst","JD and PDF signal extraction."
+"outbound-party","sync-linker","Strategist","Alignment scoring and gap analysis."
+"outbound-party","sync-publicist","Writer","Drafting outreach artifacts."
+"outbound-party","sync-refiner","Reviewer","Iterative quality gate and tone check."

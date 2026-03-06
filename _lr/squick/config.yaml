@@ -1,0 +1,13 @@
+# Squick Module Configuration
+
+module_id: squick
+enabled: true
+priority: 3
+
+methodology: "Hybrid BMM + Beads + SAFe"
+standard: "Enterprise Shipping"
+
+features:
+  pi_planning: true
+  sprint_governance: true
+  architecture_reviews: true

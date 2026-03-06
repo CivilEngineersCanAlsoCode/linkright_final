@@ -1,0 +1,5 @@
+"command","agent_id","description"
+"/flex-help","flex-publicist","Show all Flex module commands."
+"/ghostwrite","flex-publicist","Trigger viral content generation."
+"/track-metrics","lr-tracker","Update weekly social metrics."
+"/query-insights","flex-publicist","Extract viral patterns from memory."

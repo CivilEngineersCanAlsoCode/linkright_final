@@ -1,0 +1,4 @@
+"party_id","agent_id","role","responsibility"
+"flex-party","flex-publicist","Ghostwriter","Content generation and voice alignment."
+"flex-party","lr-orchestrator","Distributor","Webhook routing (Airtable/n8n)."
+"flex-party","lr-tracker","Archivist","Metric tracking and memory recall."

@@ -1,0 +1,6 @@
+"command","agent_id","description"
+"/sync-help","sync-parser","Show all Sync module commands."
+"/optimize","sync-parser","Trigger JD parsing and optimization."
+"/campaign","sync-linker","Trigger outbound campaign orchestration."
+"/portfolio","sync-styler","Trigger career portfolio deployment."
+"/signal-gap","sync-inquisitor","Start discovery to fill user signal gaps."

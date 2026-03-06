@@ -1,0 +1,5 @@
+"command","agent_id","description"
+"/squick-help","squick-sm","Show all Squick module commands."
+"/ship","squick-pm","Initialize enterprise shipping workflow."
+"/agile-status","squick-sm","Show status of active epics/stories."
+"/tech-spec","squick-architect","Generate architecture solution design."

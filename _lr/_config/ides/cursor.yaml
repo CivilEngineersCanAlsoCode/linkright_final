@@ -1,0 +1,14 @@
+# Cursor IDE Profile
+
+ide_id: cursor
+capabilities:
+  - code_completion
+  - codebase_indexing
+  - terminal_access
+
+permissions:
+  restricted_paths:
+    - ".git/"
+
+custom_rules:
+  - "Follow LINKRIGHT.md structural rules for all new files."

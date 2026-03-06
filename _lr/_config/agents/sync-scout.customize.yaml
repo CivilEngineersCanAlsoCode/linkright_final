@@ -1,0 +1,15 @@
+# Sync-Scout Customization
+
+persona:
+  overrides:
+    - "Focus heavily on LinkedIn recruiter psychology."
+    - "Prioritize finding 'Hidden Pain' signals in company news."
+
+tools:
+  allowed:
+    - "google_search"
+    - "read_url_content"
+    - "read_browser_page"
+
+memory:
+  sidecar: "insights-sidecar"

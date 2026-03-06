@@ -1,0 +1,21 @@
+# Linkright Installer Configuration
+
+installer:
+  name: lr-setup
+  version: 1.0.0
+  auto_update: true
+
+dependencies:
+  external:
+    - mongodb@latest
+    - chromadb@latest
+    - n8n@latest
+
+environment_variables:
+  - MONGODB_URI
+  - CHROMADB_HOST
+  - AIRTABLE_WEBHOOK_URL
+
+bootstrap:
+  - _lr/core/scripts/init-db.js
+  - _lr/core/scripts/seed-signals.js

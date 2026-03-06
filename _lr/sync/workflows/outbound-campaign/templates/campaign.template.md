@@ -1,0 +1,9 @@
+# Outbound Campaign Template
+
+# [Contact Name] - [Company]
+
+## Message Sequence
+
+1. LinkedIn Connection Invite: ...
+2. Personalized InMail: ...
+3. Follow-up Email (Optional): ...

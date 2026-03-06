@@ -1,0 +1,5 @@
+"party_id","agent_id","role","responsibility"
+"squick-party","squick-pm","Product","Requirement decomposition."
+"squick-party","squick-architect","Tech","System design and ADRs."
+"squick-party","squick-dev","Engineering","Implementation."
+"squick-party","squick-qa","Quality","Automated testing."

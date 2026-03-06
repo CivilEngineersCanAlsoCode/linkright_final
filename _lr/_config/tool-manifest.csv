@@ -1,0 +1,6 @@
+"tool_id","description","endpoint"
+"mongodb_crud","Direct operations on Linkright signal database.","internal"
+"chromadb_query","Vector search for viral insights and JD patterns.","internal"
+"n8n_dispatch","Trigger for cloud posting workflows.","${N8N_WEBHOOK}"
+"airtable_log","Dumps social copy into the content staging base.","${AIRTABLE_WEBHOOK}"
+"gh_pages_deploy","Pushes career portfolio code to GitHub.","internal"

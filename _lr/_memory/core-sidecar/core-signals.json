@@ -1,0 +1,13 @@
+[
+  {
+    "id": "sig-001",
+    "title": "Linkright Platform Initialization",
+    "description": "Architected and deployed the Linkright (lr) modular ecosystem, achieving 100% parity with BMAD standards.",
+    "personas": ["architect", "dev"],
+    "metrics": {
+      "reach": "Internal System",
+      "impact": "Architectural Foundation"
+    },
+    "date": "2026-03-06"
+  }
+]

@@ -1,0 +1,20 @@
+# Memory Governance Configuration
+
+memory_id: lr-global-memory
+version: 1.0.0
+
+layers:
+  - id: "sidecar-core"
+    type: "json"
+    persist: true
+    ttl: null
+  
+  - id: "sidecar-insights"
+    type: "markdown"
+    persist: true
+    ttl: "90d"
+
+vector_settings:
+  collection: "lr-signals"
+  distance_metric: "cosine"
+  dimensions: 1536

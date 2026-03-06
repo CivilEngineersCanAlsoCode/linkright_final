@@ -1,0 +1,14 @@
+# Claude-Code IDE Profile
+
+ide_id: claude-code
+capabilities:
+  - terminal_control
+  - file_editing
+  - MCP_compatibility
+
+permissions:
+  restricted_paths:
+    - ".git/"
+
+custom_rules:
+  - "Operate in MAX-PARALLEL mode for Linkright infrastructure tasks."
