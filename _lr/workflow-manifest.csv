@@ -1,0 +1,12 @@
+workflow_id,name,module,path
+party-mode,Party Mode Orchestration,core,_lr/core/workflows/party-mode/workflow.yaml
+brainstorming,Professional Brainstorming,core,_lr/core/workflows/brainstorming/workflow.yaml
+lr-discuss,Linkright Group Discussion,core,_lr/core/workflows/lr-discuss/workflow.md
+jd-optimize,Signal-Driven JD Optimization,sync,_lr/sync/workflows/jd-optimize/workflow.yaml
+outbound-campaign,Outbound Campaign Execution,sync,_lr/sync/workflows/outbound-campaign/workflow.yaml
+portfolio-deploy,Portfolio GitHub Deployment,sync,_lr/sync/workflows/portfolio-deploy/workflow.yaml
+content-automation,Social Signal Amplification,flex,_lr/flex/workflows/content-automation/workflow.yaml
+enterprise-ship,Enterprise-Grade Delivery (Squick),squick,_lr/squick/workflows/enterprise-ship/workflow.md
+agent-builder,Linkright Builder: Agent Agent,lrb,_lr/lrb/workflows/agent/workflow.md
+module-builder,Linkright Builder: Module Agent,lrb,_lr/lrb/workflows/module/workflow.md
+workflow-builder,Linkright Builder: Workflow Agent,lrb,_lr/lrb/workflows/workflow/workflow.md

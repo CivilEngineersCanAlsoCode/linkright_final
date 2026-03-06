@@ -1,21 +1,31 @@
 # Linkright System Definitions
 
-## Core Module
+## Core Module (Governance & Memory)
 
-The central hub for orchestration, governance, and cross-module synthesis. It operates the **Orchestrator (Aether)** and **Tracker (Navi)**, ensuring all professional signals are synchronized across the ecosystem.
+The central nervous system of Linkright. It manages the global configuration (`lr-config.yaml`), the distributed knowledge base, and the **Beads** governance layer.
 
-## Sync Module
+- **LR-Orchestrator (Aria)**: Primary protocol director and workflow synchronizer.
+- **LR-Tracker (Sage)**: Specialist in data integrity, memory persistence, and MongoDB/ChromaDB state.
 
-The high-precision signal processing engine. It ingests Job Descriptions (JDs), performs ethnographic scouting into company cultures, and maps candidate USP (Unique Selling Proposition) to market requirements using semantic geometry.
+## Sync Module (Signal Processing)
 
-## Flex Module
+A multi-agent engine designed for high-fidelity career signal extraction and market mapping.
 
-The professional amplification layer. It transforms processed signals into authentic social narratives, ghostwriting high-retention content and media prompts to build digital authority.
+- **Specialists**: Parser (Parker), Sizer (Sia), Refiner (Rory), Linker (Link), Styler (Stella), Scout (Scott), Publicist (Pip), Inquisitor (Izzy).
+- **Core Workflow**: `outbound-campaign` — creating signal-driven outreach sequences.
 
-## Squick Module
+## Flex Module (Social Amplification)
 
-The rapid delivery spoke ("Ship + Quick"). It utilizes a specialized rapid-delivery squad (Analyst, PM, Architect, QA) to decompose enterprise requirements and ship implementation-ready specifications with high velocity.
+The professional authority layer. It leverages viral patterns and social algorithms to amplify career signals.
+
+- **Flex-Publicist (Echo)**: Specialist in ghostwriting, viral engineering, and professional signal amplification.
+
+## Squick Module (Enterprise Delivery)
+
+"Ship + Quick" - an enterprise-grade rapid shipment squad for complex professional deliverables.
+
+- **Specialists**: PM (Piper), Analyst (Alex), Architect (Arthur), SM (Sasha), QA (Quinn), UX (Ula), Tech-Writer (Tycho).
 
 ## LRB (Linkright Builder)
 
-The meta-programming and customization layer. LRB enables the surgical modification and construction of agents, workflows, and personas, maintaining the adaptive intelligence of the system.
+The meta-programming engine for agent and module construction. It uses high-fidelity personas (**Bond**, **Morgan**, **Wendy**) to automate system evolution.

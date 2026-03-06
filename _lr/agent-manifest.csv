@@ -1,0 +1,25 @@
+agent_id,name,title,icon,module,path
+lr-orchestrator.agent.md,Aria,Linkright Orchestrator,🎭,core,_lr/core/agents/lr-orchestrator.agent.md
+lr-tracker.agent.md,Sage,Data & Memory Tracker,🧠,core,_lr/core/agents/lr-tracker.agent.md
+bond.agent.md,Bond,LRB Agent Builder Specialist,🔫,lrb,_lr/lrb/agents/bond.agent.md
+morgan.agent.md,Morgan,LRB Module Builder Specialist,🏗️,lrb,_lr/lrb/agents/morgan.agent.md
+wendy.agent.md,Wendy,LRB Workflow Builder Specialist,🧙‍♀️,lrb,_lr/lrb/agents/wendy.agent.md
+qa.agent.md,Quinn,LRB QA Specialist,🧪,lrb,_lr/lrb/agents/qa.agent.md
+m.agent.md,M,LRB Analyst Specialist,👁️,lrb,_lr/lrb/agents/m.agent.md
+q.agent.md,Q,LRB Test Engineer,⚙️,lrb,_lr/lrb/agents/q.agent.md
+sync-parser.agent.md,Parker,Signal Parser,🔍,sync,_lr/sync/agents/sync-parser.agent.md
+sync-sizer.agent.md,Sia,Market Sizer,📏,sync,_lr/sync/agents/sync-sizer.agent.md
+sync-refiner.agent.md,Rory,Signal Refiner,💎,sync,_lr/sync/agents/sync-refiner.agent.md
+sync-linker.agent.md,Link,Asset Linker,🔗,sync,_lr/sync/agents/sync-linker.agent.md
+sync-styler.agent.md,Stella,Brand Styler,✨,sync,_lr/sync/agents/sync-styler.agent.md
+sync-scout.agent.md,Scott,Opportunity Scout,🔭,sync,_lr/sync/agents/sync-scout.agent.md
+sync-publicist.agent.md,Pip,Outbound Publicist,🎺,sync,_lr/sync/agents/sync-publicist.agent.md
+sync-inquisitor.agent.md,Izzy,Strategic Inquisitor,❓,sync,_lr/sync/agents/sync-inquisitor.agent.md
+flex-publicist.agent.md,Echo,Social Brand Strategist,🌊,flex,_lr/flex/agents/flex-publicist.agent.md
+squick-pm.agent.md,Piper,Enterprise Product Manager,📋,squick,_lr/squick/agents/squick-pm.agent.md
+squick-analyst.agent.md,Alex,Data Analyst,📊,squick,_lr/squick/agents/squick-analyst.agent.md
+squick-architect.agent.md,Arthur,Solution Architect,🏗️,squick,_lr/squick/agents/squick-architect.agent.md
+squick-sm.agent.md,Sasha,Scrum Master,⚖️,squick,_lr/squick/agents/squick-sm.agent.md
+squick-qa.agent.md,Quinn,QA Specialist,🧪,squick,_lr/squick/agents/squick-qa.agent.md
+squick-ux.agent.md,Ula,Enterprise UX Strategist,✨,squick,_lr/squick/agents/squick-ux.agent.md
+squick-tech-writer.agent.md,Tycho,Enterprise Documentation Engineer,✍️,squick,_lr/squick/agents/squick-tech-writer.agent.md

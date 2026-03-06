@@ -1,0 +1,33 @@
+name: "Linkright"
+version: "4.0.0"
+type: "agentic-ecosystem"
+standards: "BMAD v6.0 Professional"
+governance: "Beads (git-backed)"
+description: "High-fidelity career signal processing and professional artifact generation system."
+
+modules:
+  core:
+    path: "_lr/core"
+    purpose: "System orchestration, governance, and memory management"
+    status: "standardized"
+  sync:
+    path: "_lr/sync"
+    purpose: "Signal ingestion, research, and outbound campaign execution"
+    status: "standardized"
+  lrb:
+    path: "_lr/lrb"
+    purpose: "Module and agent development metadata (Linkright Builder)"
+    status: "standardized"
+  squick:
+    path: "_lr/squick"
+    purpose: "Enterprise-grade rapid shipment squad (Ship + Quick)"
+    status: "standardized"
+  flex:
+    path: "_lr/flex"
+    purpose: "Social brand strategy and viral signal amplification"
+    status: "standardized"
+
+governance_files:
+  - "context/LINKRIGHT-BEADS.md"
+  - "_lr/lr-config.yaml"
+  - "_lr/core/knowledge/signal-taxonomy.json"
