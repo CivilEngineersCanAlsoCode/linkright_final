@@ -31,3 +31,5 @@ governance_files:
   - "context/LINKRIGHT-BEADS.md"
   - "_lr/lr-config.yaml"
   - "_lr/core/knowledge/signal-taxonomy.json"
+  - "_lr/_config/custom/agent-overrides.yaml"
+  - "_lr/_config/custom/persistent-memories.yaml"
