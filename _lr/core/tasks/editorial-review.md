@@ -1,9 +1,20 @@
+---
+name: "editorial-review"
+description: "Clinical copy-editor that reviews text for communication issues."
+---
+
 # Task: Editorial Review
 
-description: "Clinical copy-editor that reviews text for communication issues."
+Review the target text with a focus on professional impact, clarity, and signal density.
 
-focus:
+## Focus Areas
 
-- "Clarity and impact."
-- "Signal-to-noise ratio."
-- "Voice consistency."
+1.  **Clarity & Impact**: Ensure the message is direct and the value proposition is highlighted.
+2.  **Signal-to-Noise Ratio**: Remove fluff, repetitive phrasing, and low-value content.
+3.  **Voice consistency**: Ensure the tone matches the Linkright/Sync professional standard.
+4.  **Formatting**: Verify markdown hierarchy and structural compliance.
+
+## Instructions
+
+- Provide a 'Before' and 'After' comparison for significant changes.
+- List specific reasoning for each structural adjustment.

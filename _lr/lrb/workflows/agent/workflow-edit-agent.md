@@ -2,7 +2,7 @@
 name: edit-agent
 description: Edit existing BMAD agents while maintaining compliance
 web_bundle: true
-editWorkflow: './steps-e/e-01-load-existing.md'
+editWorkflow: "./steps-e/e-01-load-existing.md"
 ---
 
 # Edit Agent

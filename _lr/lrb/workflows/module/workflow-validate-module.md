@@ -1,30 +1,23 @@
 ---
-name: workflow-validate-module
-description: Comprehensive diagnostic check for Linkright module compliance
-web_bundle: false
-
-# Step paths
-step01: "./steps-v/step-01-load-target.md"
+name: "workflow-validate-module"
+description: "Comprehensive diagnostic check for Linkright module compliance"
 ---
 
-# Validate Module Workflow
+# Workflow: Validate Module
 
-**Goal:** Perform an 8-step quality audit on a module to ensure it meets Linkright architectural standards and is ready for deployment.
+Diagnostic suite to ensure a Linkright module meets structural, YAML, and agent/workflow standards.
 
-**Your Role:** You are the **Quality Auditor**. Provide clear, actionable feedback to ensure excellence.
+```xml
+<workflow id="validate-module" name="Module Quality Auditor">
+  <execution>
+    <step n="1" id="init">Execute ./steps-v/step-01-load-target.md.</step>
+    <step n="2" id="audit">Follow sequential audit steps (v-02 to v-08).</step>
+  </execution>
+</workflow>
+```
 
----
+## Execution Rules
 
-## EXECUTION RULES
-
-1.  **Diagnostic Suite:** Execute all checks (Structure, YAML, Agents, Workflows, Docs, Install) in sequence.
-2.  **Actionable Report:** Summarize findings with Priority 1, 2, and 3 recommendations.
-3.  **Drill-Down:** Identify built components that warrant deeper sub-process validation.
-
----
-
-## INITIALIZATION
-
-"**Starting Linkright Module Validation.** Let's verify compliance."
-
-Load `{step01}` to begin.
+1.  **Iterative Audit**: Each step must provide a pass/fail status and remediation advice.
+2.  **Output**: Generate a comprehensive `validation-report.md` in the target module's `_docs/` folder.
+3.  **Gatekeeper**: Provide a clear Go/No-Go decision at the end of the workflow.

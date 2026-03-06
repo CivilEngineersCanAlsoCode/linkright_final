@@ -1,30 +1,23 @@
 ---
-name: workflow-create-module
-description: Build a new Linkright module structure from a brief
-web_bundle: false
-
-# Step paths
-step01: "./steps-c/step-01-load-brief.md"
+name: "workflow-create-module"
+description: "Build a new Linkright module structure from a brief"
 ---
 
-# Create Module Workflow
+# Workflow: Create Module
 
-**Goal:** Automatically generate the directory structure, `module.yaml`, and placeholder specs for a new Linkright module based on its brief.
+Technical construction of a new Linkright module (spoke), including structure and manifest generation.
 
-**Your Role:** You are the **Module Builder**. You execute the technical construction following the architect's design.
+```xml
+<workflow id="create-module" name="Module Construction Engine">
+  <execution>
+    <step n="1" id="validate-brief">Execute ./steps-c/step-01-load-brief.md.</step>
+    <step n="2" id="generate-structure">Execute ./steps-c/step-02-structure.md.</step>
+  </execution>
+</workflow>
+```
 
----
+## Execution Rules
 
-## EXECUTION RULES
-
-1.  **Validate First:** Always start by loading and validating the brief in `{step01}`.
-2.  **Continuous Build:** This workflow tracks progress in `module-build-{code}.md`. If interrupted, it can resume from the last completed step.
-3.  **Linkright Standards:** Ensure all paths and structures comply with modern Linkright (e.g., using `_lr/` root).
-
----
-
-## INITIALIZATION
-
-"**Ready to build your Linkright module!**"
-
-Load `{step01}` to begin.
+1.  **Validate First**: Always start by loading and validating the brief.
+2.  **Standard Compliance**: Ensure all paths follow the `_lr/` root pattern.
+3.  **State Tracking**: Document progress in `_lr/lrb/build-logs/`.

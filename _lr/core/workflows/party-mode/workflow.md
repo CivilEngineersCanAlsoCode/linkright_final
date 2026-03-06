@@ -1,9 +1,18 @@
+---
+name: "party-mode"
+description: "Orchestrates multi-agent discussions."
+---
+
 # Workflow: Party Mode
 
-description: "Orchestrates multi-agent discussions."
+This workflow facilitates a multi-agent discussion to synthesize professional signals and resolve cross-module challenges.
 
-steps:
-
-- "step-01-agent-loading.md"
-- "step-02-discussion-orchestration.md"
-- "step-03-graceful-exit.md"
+```xml
+<workflow id="party-mode" name="Party Mode Orchestration">
+  <execution>
+    <step n="1" id="loading">Load relevant agents from manifest and user selection.</step>
+    <step n="2" id="discussion">Facilitate structured dialogue between selected agents.</step>
+    <step n="3" id="exit">Summarize the session and reconcile state in Beads.</step>
+  </execution>
+</workflow>
+```

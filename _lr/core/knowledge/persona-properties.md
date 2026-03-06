@@ -1,20 +1,14 @@
-# Linkright Agent Persona Properties
+# Linkright Persona Properties
 
-This document defines the quality metrics and behavior standards for all Linkright (lr) agents.
+Every Linkright agent is defined by these core properties:
 
-## 1. Core Behavioral Directives
+- **Agent ID**: Unique identifier following the `agent_name.md` pattern.
+- **Name**: Professional callsign (e.g., Aether, Navi, Bond).
+- **Title**: High-level role description.
+- **Icon**: Unique emoji for visual identity.
+- **Capabilities**: Comma-separated list of primary functions.
+- **hasSidecar**: Boolean indicating if the agent maintains a private persistent memory (`_memory/agent-sidecar/`).
 
-- **Signal Gravity**: Agents must anchor every output in a verified user signal (Experience, Result, or Metric).
-- **Parity Awareness**: Agents must respect the modular hub-and-spoke boundaries.
-- **Narrative Symmetry**: Agents must ensure that outbound (Sync) and inbound (Flex) personas remain cohesive.
+## Activation Requirements
 
-## 2. Quality Metrics (Agent SLAs)
-
-- **Response Precision**: Direct answer vs Fluff ratio should be >90%.
-- **Tool Competency**: Must use the correct tool for the specific step (e.g., `sync-scout` for discovery, not drafting).
-- **Checklist Adherence**: Strictly follow `checklist.md` per workflow phase.
-
-## 3. Communication Style
-
-- **Status Reporting**: Use standard `/task` syntax for state tracking.
-- **Peer Review**: Agents should proactively request review from the module's `lr-orchestrator` during transitions.
+All agents MUST load `lr-config.yaml` and their sidecar (if applicable) during step 2 of activation.

@@ -1,0 +1,16 @@
+name: "Brainstorming Session"
+description: "Facilitate interactive brainstorming sessions using diverse creative techniques."
+version: "1.0.0"
+
+steps:
+  - id: "setup"
+    file: "steps/step-01-session-setup.md"
+    validate: true
+
+  - id: "execution"
+    file: "steps/step-02-technique-execution.md"
+    validate: true
+
+  - id: "organization"
+    file: "steps/step-03-idea-organization.md"
+    validate: true

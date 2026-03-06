@@ -1,0 +1,16 @@
+name: "Party Mode Orchestration"
+description: "Multi-agent discussion for complex cross-module signals."
+version: "1.0.0"
+
+steps:
+  - id: "loading"
+    file: "steps/step-01-agent-loading.md"
+    validate: true
+
+  - id: "discussion"
+    file: "steps/step-02-discussion-orchestration.md"
+    validate: true
+
+  - id: "exit"
+    file: "steps/step-03-graceful-exit.md"
+    validate: true

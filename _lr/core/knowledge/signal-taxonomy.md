@@ -1,22 +1,27 @@
-# Global Signal Taxonomy
+# Signal Taxonomy
 
-Shared classification for the Linkright ecosystem (Sync & Flex).
+Linkright operations are governed by the exchange and processing of **High-Fidelity Signals**.
 
-## Categories
+## 1. Professional Signals (Inbound-Experience)
 
-- **product-strategy**: Roadmap, vision, OKRs.
-- **execution**: Delivery, launches, sprints.
-- **stakeholder**: Influencing, alignment.
-- **technical**: System design, architecture.
-- **data-analytics**: Experiments, metrics.
-- **leadership**: Org design, mentoring.
-- **growth**: Conversion, acquisition.
-- **process**: Governance, tools.
-- **external**: Partners, research.
+Metadata extracted from the candidate's professional "Deep Water."
 
-## Ownership Levels
+- `usp_delta`: The semantic gap between candidate capacity and market demand.
+- `proof_points`: Quantifiable impact metrics extracted via "Inquisitor" interviews.
+- `career_archetype`: The overarching narrative persona (e.g., "The Fixer," "The Scaling Architect").
 
-- **sole**: Accountable decision-maker.
-- **shared**: Co-owned with 1-2 others.
-- **contributed**: Input provided.
-- **advised**: Consultative role.
+## 2. Market Signals (Inbound-Opportunity)
+
+Metadata extracted from job descriptions and external intelligence.
+
+- `jd_signal`: Atomic requirement extracted from raw job descriptions.
+- `cultural_marker`: Visual or tonal indicators identified during company scouting.
+- `stakeholder_map`: Identification of key decision-makers and their incentives.
+
+## 3. Engagement Signals (Outbound-Impact)
+
+Metrics tracking the authority and resonance of generated artifacts.
+
+- `viral_score`: Predicted resonance of social content based on known "Viral Mechanics."
+- `bridge_coefficient`: The strength of alignment between a cover letter narrative and recruiter incentives.
+- `conversion_status`: Progressive tracking from cold outreach to interview confirmation.

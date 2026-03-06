@@ -1,18 +1,24 @@
-# Command Syntax & Governance
+# Linkright Command Syntax
 
-## Global Commands
+Unified command registry for cross-agent orchestration and global system control.
 
-- `lr-help`: Registry lookup.
-- `bd ready`: Task discovery.
-- `bd update [id] --status [status]`: State management.
+## Menu Interaction Pattern
 
-## Module Prefixes
+Menu items follow a standardized `[Trigger] Label: Description` pattern for consistent UX.
 
-- `sync-*`: Outbound career positioning.
-- `flex-*`: Inbound brand building.
-- `squick-*`: Rapid enterprise shipping.
+### Standard Triggers
 
-## Step Execution
+- **[GO] Module Entry**: Route to a specific spoke (e.g., `[GO] Sync`).
+- **[CP] Construct Product**: Generate a technical or narrative artifact (e.g., `[CP] PRD`).
+- **[RS] Resume Session**: Restore the last active Bead context.
+- **[PM] Party Mode**: Launch a distributed multi-agent discussion.
+- **[DA] Dismiss Agent**: Terminate the current agent persona.
 
-Steps must be executed sequentially: `step-01` -> `step-02`.
-Agents must load context from `data/` before writing to `templates/`.
+## Global Slash Commands
+
+Available to the user at any point in the conversation, regardless of the active agent.
+
+- **/lr-menu**: Standardizes the return path to the Core Orchestrator.
+- **/lr-help**: Accesses the global Linkright utility registry.
+- **/lr-status**: Displays the success ledger and project health history.
+- **/lr-sync**: Forces a Beads state synchronization.

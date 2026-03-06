@@ -2,7 +2,7 @@
 name: create-agent
 description: Create a new BMAD agent with best practices and compliance
 web_bundle: true
-createWorkflow: './steps-c/step-01-brainstorm.md'
+createWorkflow: "./steps-c/step-01-brainstorm.md"
 ---
 
 # Create Agent
