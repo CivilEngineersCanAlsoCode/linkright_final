@@ -1,0 +1,4 @@
+name,module,displayName,description,path
+"test-plan-template","lrb","Test Plan Template","Boilerplate for new feature test plans.","_lr/lrb/workflows/qa/data/test-plan-template.md"
+"brief-template","lrb","Module Brief Template","Standardized discovery document template.","_lr/lrb/workflows/module/templates/brief-template.md"
+"workflow-spec-template","lrb","Workflow Spec Template","Standardized step and orchestrator template.","_lr/lrb/workflows/module/templates/workflow-spec-template.md"

@@ -1,17 +1,5 @@
-# Antigravity IDE Profile
-
-ide_id: antigravity
-capabilities:
-  - web_search
-  - image_generation
-  - terminal_access
-  - browser_testing
-
-permissions:
-  restricted_paths:
-    - ".git/"
-    - "node_modules/"
-
-custom_rules:
-  - "Always prioritize Signal Gravity in Linkright workflows."
-  - "Maintain strict v4.0 Master Prompt compliance."
+ide: antigravity
+configured_date: 2026-03-04T14:44:16.689Z
+last_updated: 2026-03-04T14:44:16.689Z
+configuration:
+  _noConfigNeeded: true

@@ -1,0 +1,9 @@
+name,module,displayName,description,path,orchestrator_agent
+"module-brief","lrb","Module Briefing","Discovery phase for new module blueprints.","_lr/lrb/workflows/module/workflow-module-brief.md","morgan"
+"create-module","lrb","Module Creation","Execution phase for building a complete module directory.","_lr/lrb/workflows/module/workflow-create-module.md","morgan"
+"validate-module","lrb","Module Validation","Quality assurance phase for verifying module integrity.","_lr/lrb/workflows/module/workflow-validate-module.md","morgan"
+"generate-tests","lrb","Test Generation","Automated generation of Vitest/Playwright suites.","_lr/lrb/workflows/qa/workflow-generate-tests.md","qa"
+"quality-gate","lrb","Quality Gate","Full test suite execution and Go/No-Go reporting.","_lr/lrb/workflows/qa/workflow-quality-gate.md","qa"
+"party-mode","core","Party Mode","Multi-agent brainstorming and discussion.","_lr/core/workflows/party-mode/workflow.md","lr-orchestrator"
+"jd-optimize","sync","JD Optimization","Tailoring professional profile to specific job signals.","_lr/sync/workflows/jd-optimize/workflow.md","sync-parser"
+"outbound-campaign","sync","Outbound Campaign","Generating outreach sequences and messaging.","_lr/sync/workflows/outbound-campaign/workflow.md","sync-publicist"

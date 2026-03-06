@@ -1,0 +1,58 @@
+installation:
+  version: 1.0.0
+  system_name: Linkright
+  installDate: 2026-03-06T06:45:00.000Z
+  lastUpdated: 2026-03-06T06:45:00.000Z
+modules:
+  - name: core
+    version: 1.0.0
+    source: built-in
+  - name: lrb
+    version: 1.0.0
+    source: built-in
+  - name: sync
+    version: 1.0.0
+    source: built-in
+  - name: flex
+    version: 1.0.0
+    source: built-in
+  - name: squick
+    version: 1.0.0
+    source: built-in
+ides:
+  - antigravity
+  - auggie
+  - claude-code
+  - cline
+  - codebuddy
+  - codex
+  - crush
+  - cursor
+  - gemini
+  - github-copilot
+  - iflow
+  - kilo
+  - kiro
+  - opencode
+  - qwen
+  - roo
+  - rovo-dev
+  - trae
+  - vscode
+  - windsurf
+  - vscode
+  - intellij
+  - pycharm
+  - webstorm
+  - vim
+  - neovim
+  - emacs
+  - sublime
+  - zed
+  - windsurf
+  - terminal
+  - tmux
+  - jupyter
+  - github-codespaces
+  - gitpod
+  - replit

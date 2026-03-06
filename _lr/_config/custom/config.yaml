@@ -1,0 +1,13 @@
+# Linkright Project Customization
+user_name: "Satvik"
+communication_language: "English"
+document_output_language: "English"
+output_folder: "outputs"
+mode: "professional"
+
+# Agent Overrides
+agent_overrides:
+  lr-orchestrator:
+    icon: "🚀"
+  qa:
+    strict_mode: true

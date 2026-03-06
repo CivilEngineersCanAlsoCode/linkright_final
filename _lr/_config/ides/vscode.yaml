@@ -1,0 +1,7 @@
+ide_id: vscode
+capabilities:
+  - extension_host
+  - interactive_terminal
+  - filesystem_access
+rules:
+  - "Follow Linkright VS Code branding."
