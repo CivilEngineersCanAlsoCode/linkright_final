@@ -5,6 +5,15 @@ system:
   version: 4.0
   identity: orchestrator
   mode: modular
+  communication_language: English
+  document_output_language: English
+
+user:
+  name: "[USER_NAME]"
+  bio: "[USER_PROFESSIONAL_SUMMARY]"
+  target_role: "[TARGET_JOB_TITLE]"
+  target_companies: []
+  skills: []
 
 modules:
   core:
@@ -27,6 +36,9 @@ data_layers:
     config: _lr/core/config/chromadb-config.yaml
 
 distribution:
+  settings:
+    mode: professional
+    target_platform: web
   airtable:
     url: "${AIRTABLE_WEBHOOK_URL}"
   postiz:

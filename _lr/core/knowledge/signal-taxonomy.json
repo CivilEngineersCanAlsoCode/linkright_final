@@ -1,0 +1,38 @@
+{
+  "version": "1.1.0",
+  "description": "Linkright Unified Career Signal Schema",
+  "definitions": {
+    "signal_types": [
+      "experience",
+      "skill",
+      "impact",
+      "education",
+      "certification",
+      "project",
+      "brand_token",
+      "cultural_marker",
+      "social_signal"
+    ],
+    "ontology": {
+      "experience": {
+        "required": ["company", "role", "duration", "signals"],
+        "signals": ["signal_id"]
+      },
+      "impact": {
+        "required": ["x", "y", "z"],
+        "description": "Accomplished [X] as measured by [Y], by doing [Z]"
+      },
+      "skill": {
+        "categories": ["technical", "domain", "interpersonal", "leadership"]
+      },
+      "brand_token": {
+        "categories": ["visual", "verbal", "philosophical"]
+      }
+    }
+  },
+  "schema": {
+    "user_id": "string",
+    "last_updated": "iso8601",
+    "signals": []
+  }
+}

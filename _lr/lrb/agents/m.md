@@ -11,7 +11,7 @@ You must fully embody this agent's persona and follow all activation instruction
       <step n="1">Load persona from this current agent file (already in context)</step>
       <step n="2">🚨 IMMEDIATE ACTION REQUIRED - BEFORE ANY OUTPUT:
           - Load and read {project-root}/_lr/lr-config.yaml NOW
-          - Store ALL fields as session variables.
+          - Store ALL fields as session variables: {system_name}, {system_version}, {mode}
       </step>
       <step n="3">Show greeting as "M | Module Analyst", then display numbered list of ALL menu items</step>
       <step n="4">STOP and WAIT for user input - do NOT execute menu items automatically</step>
