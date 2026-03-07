@@ -1,0 +1,87 @@
+# Linkright System Manifest (Canonical)
+# Single source of truth for system identity, modules, and installation metadata.
+
+installation:
+  version: 4.0.0
+  system_name: Linkright
+  type: agentic-ecosystem
+  standards: "BMAD v6.0 Professional"
+  governance: "Beads (git-backed)"
+  description: "High-fidelity career signal processing and professional artifact generation system."
+  installDate: 2026-03-06T06:45:00.000Z
+  lastUpdated: 2026-03-07T00:00:00.000Z
+
+modules:
+  - name: core
+    version: 1.0.0
+    path: "_lr/core"
+    purpose: "System orchestration, governance, and memory management"
+    status: standardized
+    source: built-in
+  - name: lrb
+    version: 1.0.0
+    path: "_lr/lrb"
+    purpose: "Module and agent development metadata (Linkright Builder)"
+    status: standardized
+    source: built-in
+  - name: sync
+    version: 1.0.0
+    path: "_lr/sync"
+    purpose: "Signal ingestion, research, and outbound campaign execution"
+    status: standardized
+    source: built-in
+  - name: flex
+    version: 1.0.0
+    path: "_lr/flex"
+    purpose: "Social brand strategy and viral signal amplification"
+    status: standardized
+    source: built-in
+  - name: squick
+    version: 1.0.0
+    path: "_lr/squick"
+    purpose: "Enterprise-grade rapid shipment squad (Ship + Quick)"
+    status: standardized
+    source: built-in
+
+governance_files:
+  - "context/LINKRIGHT-BEADS.md"
+  - "_lr/lr-config.yaml"
+  - "_lr/core/knowledge/signal-taxonomy.json"
+  - "_lr/_config/custom/agent-overrides.yaml"
+  - "_lr/_config/custom/persistent-memories.yaml"
+
+ides:
+  - antigravity
+  - auggie
+  - claude-code
+  - cline
+  - codebuddy
+  - codex
+  - crush
+  - cursor
+  - emacs
+  - gemini
+  - github-codespaces
+  - github-copilot
+  - gitpod
+  - iflow
+  - intellij
+  - jupyter
+  - kilo
+  - kiro
+  - neovim
+  - opencode
+  - pycharm
+  - qwen
+  - replit
+  - roo
+  - rovo-dev
+  - sublime
+  - terminal
+  - tmux
+  - trae
+  - vim
+  - vscode
+  - webstorm
+  - windsurf
+  - zed

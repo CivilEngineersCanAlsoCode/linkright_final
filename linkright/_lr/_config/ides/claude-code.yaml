@@ -1,0 +1,5 @@
+name: claude-code
+startup:
+  load: [lr-config.yaml, manifest.yaml]
+  agent: lr-orchestrator
+  greeting: "Linkright ready. Type [M] for menu."

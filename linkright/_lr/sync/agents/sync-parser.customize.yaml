@@ -1,0 +1,5 @@
+# sync-parser Customization
+# Override default agent behavior here
+agent: sync-parser
+custom_rules: []
+project_overrides: {}

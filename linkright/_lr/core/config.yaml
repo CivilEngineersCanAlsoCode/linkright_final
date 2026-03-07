@@ -1,0 +1,17 @@
+# Core Module Configuration
+
+module_id: core
+enabled: true
+priority: 0
+
+features:
+  party_mode: true
+  brainstorming: true
+  lr_discuss: true
+  context_gen: true
+  create_story: true
+  dev_story: true
+  document_project: true
+  document_system: true
+  sprint_planning: true
+  sprint_status: true

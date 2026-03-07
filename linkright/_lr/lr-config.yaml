@@ -1,0 +1,48 @@
+# Linkright (lr) Global Configuration
+
+system:
+  name: Linkright
+  version: 4.0
+  identity: orchestrator
+  mode: modular
+  communication_language: English
+  document_output_language: English
+
+user:
+  name: "[USER_NAME]"
+  bio: "[USER_PROFESSIONAL_SUMMARY]"
+  target_role: "[TARGET_JOB_TITLE]"
+  target_companies: []
+  skills: []
+
+modules:
+  core:
+    enabled: true
+    path: _lr/core
+  lrb:
+    enabled: true
+    path: _lr/lrb
+  sync:
+    enabled: true
+    path: _lr/sync
+  flex:
+    enabled: true
+    path: _lr/flex
+  squick:
+    enabled: true
+    path: _lr/squick
+
+data_layers:
+  mongodb:
+    config: _lr/core/config/mongodb-config.yaml
+  chromadb:
+    config: _lr/core/config/chromadb-config.yaml
+
+distribution:
+  settings:
+    mode: professional
+    target_platform: web
+  airtable:
+    url: "${AIRTABLE_WEBHOOK_URL}"
+  postiz:
+    url: "${POSTIZ_API_URL}"

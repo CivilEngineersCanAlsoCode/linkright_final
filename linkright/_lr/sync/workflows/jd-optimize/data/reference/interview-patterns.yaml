@@ -1,0 +1,3 @@
+interview_patterns:
+  rounds: [phone-screen, technical, system-design, behavioral, bar-raiser]
+  prep_signals: [leetcode-medium, system-design-primer, behavioral-STAR]

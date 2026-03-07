@@ -1,0 +1,5 @@
+resume_formatting:
+  max_pages: 2
+  font: [Calibri, Arial, Helvetica]
+  margins: "0.5-1 inch"
+  sections: [Summary, Experience, Skills, Education, Projects]

@@ -1,0 +1,10 @@
+name: document-system
+description: "High-level documentation generator for the entire Linkright ecosystem"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/core/workflows/document-system"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/system-onboarding.template.md"
+input_file_patterns:
+  context_files:
+    pattern: "../../**/CONTEXT.md"
+    strategy: FULL_LOAD

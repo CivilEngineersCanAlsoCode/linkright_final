@@ -1,0 +1,6 @@
+# lr-orchestrator Customization
+agent: lr-orchestrator
+custom_rules: []
+project_overrides:
+  default_module: sync
+  greeting_style: professional

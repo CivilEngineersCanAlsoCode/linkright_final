@@ -1,0 +1,11 @@
+connection_string: "mongodb://localhost:27017"
+database: "linkright"
+collections:
+  users: "Profile definitions"
+  career_signals: "Granular signal blocks"
+  jd_profiles: "Targets scraped from JDs"
+  resume_versions: "Immutable artifact snapshots"
+  success_ledger: "Feedback and ROI outcomes"
+options:
+  timeout_ms: 5000
+  retry_writes: true

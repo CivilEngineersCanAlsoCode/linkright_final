@@ -1,0 +1,9 @@
+name: squick-implementation
+description: "Code generation and adversarial quality review"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/squick/workflows/4-implementation"
+instructions: "{installed_path}/instructions.md"
+input_file_patterns:
+  solution:
+    pattern: "../3-solutioning/artifacts/adr.md"
+    strategy: FULL_LOAD

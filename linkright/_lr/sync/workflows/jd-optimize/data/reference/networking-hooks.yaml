@@ -1,0 +1,3 @@
+networking_hooks:
+  cold_outreach: [shared_background, mutual_connection, content_engagement]
+  warm_intro: [referral, alumni, conference_meetup]

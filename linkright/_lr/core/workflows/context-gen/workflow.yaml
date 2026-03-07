@@ -1,0 +1,10 @@
+name: context-gen
+description: "Self-documenting context engine for Linkright modules"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/core/workflows/context-gen"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/context.template.md"
+input_file_patterns:
+  agents:
+    pattern: "../../agents/*.md"
+    strategy: FULL_LOAD

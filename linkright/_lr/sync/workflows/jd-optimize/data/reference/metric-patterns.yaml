@@ -1,0 +1,4 @@
+metric_patterns:
+  revenue: ["$X revenue", "ARR", "MRR"]
+  scale: ["Xk users", "X nodes", "X QPS"]
+  efficiency: ["X% improvement", "reduced by X%"]

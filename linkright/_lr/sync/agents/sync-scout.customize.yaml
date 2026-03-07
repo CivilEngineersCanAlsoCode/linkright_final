@@ -1,0 +1,5 @@
+# sync-scout Customization
+# Override default agent behavior here
+agent: sync-scout
+custom_rules: []
+project_overrides: {}

@@ -1,0 +1,10 @@
+name: squick-plan
+description: "PRD drafting and UX alignment for rapid delivery"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/squick/workflows/2-plan"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/prd.template.md"
+input_file_patterns:
+  product_brief:
+    pattern: "../1-analysis/artifacts/product-brief.md"
+    strategy: FULL_LOAD

@@ -1,0 +1,5 @@
+name,displayName,description,module,path,standalone
+"adversarial-review","Adversarial Review","Perform a cynical deep-dive review of target content finding unhandled edge cases, logic flaws, and vulnerabilities. Use when the user requests a critical or adversarial review","core","_lr/core/tasks/adversarial-review.md","true"
+"editorial-review","Editorial Review","Clinical copy-editor that reviews text for clarity, signal density, and voice consistency. Use when user says review for prose or improve the writing","core","_lr/core/tasks/editorial-review.md","true"
+"help","Help","Displays comprehensive command mappings and help for Linkright global and module commands. Use if user says what should I do next or requests help","core","_lr/core/tasks/help.md","true"
+"shard-doc","Shard Document","Splits large markdown documents into smaller organized files based on H2 sections and generates an index. Use if the user says perform shard document","core","_lr/core/tasks/shard-doc.md","true"

@@ -1,0 +1,19 @@
+signal_ontology:
+  version: 1.0.0
+  types:
+    - name: technical_stack
+      schema:
+        languages: [string]
+        frameworks: [string]
+        tools: [string]
+    - name: accomplishment_block
+      schema:
+        action: string
+        metric: string
+        scaling: string
+        outcome: string
+    - name: professional_ontology
+      schema:
+        role: string
+        industry: string
+        seniority: string

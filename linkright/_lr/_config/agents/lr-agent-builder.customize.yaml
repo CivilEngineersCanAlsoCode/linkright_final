@@ -1,0 +1,11 @@
+# <!-- Powered by Linkright™ -->
+# Agent customization for lr-agent-builder
+# Override global defaults here per project context.
+
+persona_overrides:
+  tone: "standard"
+  strictness: "high"
+
+system_overrides:
+  model: "default"
+  max_output_tokens: 4000

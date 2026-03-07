@@ -1,0 +1,3 @@
+agent: sync-publicist
+custom_rules: []
+project_overrides: {}

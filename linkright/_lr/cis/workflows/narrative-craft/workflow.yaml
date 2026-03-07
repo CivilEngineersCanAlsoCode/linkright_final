@@ -1,0 +1,10 @@
+name: narrative-craft
+description: "Design and refine the professional narrative arc using creative intelligence"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/cis/workflows/narrative-craft"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/narrative-hook.template.md"
+input_file_patterns:
+  career_signals:
+    pattern: "../../sync/workflows/signal-capture/artifacts/career_signals.yaml"
+    strategy: FULL_LOAD

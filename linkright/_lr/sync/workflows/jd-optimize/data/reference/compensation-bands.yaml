@@ -1,0 +1,3 @@
+compensation_bands:
+  note: "Reference only - market data"
+  sources: [levels.fyi, glassdoor, blind]

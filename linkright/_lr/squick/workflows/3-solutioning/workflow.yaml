@@ -1,0 +1,10 @@
+name: squick-solutioning
+description: "Technical architecture design and feasibility review"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/squick/workflows/3-solutioning"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/architecture-decision.template.md"
+input_file_patterns:
+  prd:
+    pattern: "../2-plan/artifacts/prd.md"
+    strategy: FULL_LOAD

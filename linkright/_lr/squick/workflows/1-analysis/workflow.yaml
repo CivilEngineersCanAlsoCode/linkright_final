@@ -1,0 +1,10 @@
+name: squick-analysis
+description: "Initial discovery and product brief generation for rapid delivery"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/squick/workflows/1-analysis"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/product-brief.template.md"
+input_file_patterns:
+  brief:
+    pattern: "data/brief.md"
+    strategy: FULL_LOAD

@@ -1,0 +1,11 @@
+# <!-- Powered by Linkright™ -->
+bundle:
+  name: Team Enterprise Ship
+  icon: 🏢
+  description: High-velocity team for enterprise discovery, architecture, and agile delivery.
+agents:
+  - squick-analyst
+  - squick-architect
+  - squick-pm
+  - squick-qa
+party: "../default-party.csv"

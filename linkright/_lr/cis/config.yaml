@@ -1,0 +1,8 @@
+# CIS (Creative Intelligence System) Module Configuration
+
+module_id: cis
+enabled: true
+priority: 4
+
+features:
+  narrative_craft: true

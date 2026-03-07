@@ -1,0 +1,14 @@
+name: application-track
+description: "Track and manage job application pipeline status across multiple targets"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/sync/workflows/application-track"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/application-tracker.template.md"
+checklist: "{installed_path}/checklist.md"
+input_file_patterns:
+  career_signals:
+    pattern: "../signal-capture/artifacts/career_signals.yaml"
+    strategy: FULL_LOAD
+  optimized_jd:
+    pattern: "../jd-optimize/artifacts/optimized-jd.md"
+    strategy: FULL_LOAD

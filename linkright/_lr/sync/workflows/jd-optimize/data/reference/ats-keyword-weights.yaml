@@ -1,0 +1,4 @@
+ats_weights:
+  p0_exact_match: 1.0
+  p1_synonym_match: 0.7
+  p2_contextual_match: 0.4

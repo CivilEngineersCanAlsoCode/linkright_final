@@ -1,0 +1,3 @@
+industry_signals:
+  sectors: [SaaS, FinTech, HealthTech, E-Commerce, AI/ML, DevOps]
+  maturity: [Startup, Scale-up, Enterprise, Public]

@@ -1,0 +1,8 @@
+connection: "localhost:8000"
+collection: "career_embeddings"
+embedding_model: "text-embedding-3-small"
+retrieval:
+  top_k: 5
+  similarity_threshold: 0.75
+options:
+  persist_directory: "./chroma_db"

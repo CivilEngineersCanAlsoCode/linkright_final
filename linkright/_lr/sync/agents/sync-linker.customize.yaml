@@ -1,0 +1,5 @@
+# sync-linker Customization
+# Override default agent behavior here
+agent: sync-linker
+custom_rules: []
+project_overrides: {}

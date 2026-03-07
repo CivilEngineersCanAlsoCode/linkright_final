@@ -1,0 +1,4 @@
+cultural_tokens:
+  startup: [fast-paced, scrappy, wear-many-hats]
+  enterprise: [cross-functional, stakeholder, governance]
+  remote: [async, distributed, timezone-aware]

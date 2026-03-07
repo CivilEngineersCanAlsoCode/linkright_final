@@ -1,0 +1,21 @@
+# LRB (Linkright Builder) Module Configuration
+
+module_id: lrb
+enabled: true
+priority: 0
+
+features:
+  agent_creation: true
+  agent_editing: true
+  agent_validation: true
+  module_creation: true
+  module_editing: true
+  module_validation: true
+  module_briefing: true
+  test_generation: true
+  quality_gate: true
+
+builder_standards:
+  agent_spec_format: "BMAD v6.0"
+  workflow_step_format: "numbered markdown"
+  validation_mode: strict

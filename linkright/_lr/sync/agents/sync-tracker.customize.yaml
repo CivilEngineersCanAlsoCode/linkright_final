@@ -1,0 +1,5 @@
+agent_id: sync-tracker
+overrides:
+  temperature: 0.1
+  system_instructions: |
+    Strict output adherence to CSV/Markdown table format for the ledger.

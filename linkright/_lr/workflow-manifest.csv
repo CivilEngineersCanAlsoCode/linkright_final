@@ -1,0 +1,28 @@
+workflow_id,name,module,path
+party-mode,Party Mode Orchestration,core,_lr/core/workflows/party-mode/workflow.yaml
+brainstorming,Professional Brainstorming,core,_lr/core/workflows/brainstorming/workflow.yaml
+lr-discuss,Linkright Group Discussion,core,_lr/core/workflows/lr-discuss/workflow.md
+context-gen,Context Generation,core,_lr/core/workflows/context-gen/workflow.yaml
+create-story,Story Creation,core,_lr/core/workflows/create-story/workflow.yaml
+dev-story,Development Story Execution,core,_lr/core/workflows/dev-story/workflow.yaml
+document-project,Project Documentation,core,_lr/core/workflows/document-project/workflow.yaml
+document-system,System Documentation,core,_lr/core/workflows/document-system/workflow.yaml
+sprint-planning,Sprint Planning,core,_lr/core/workflows/sprint-planning/workflow.yaml
+sprint-status,Sprint Status Review,core,_lr/core/workflows/sprint-status/workflow.yaml
+jd-optimize,Signal-Driven JD Optimization,sync,_lr/sync/workflows/jd-optimize/workflow.yaml
+outbound-campaign,Outbound Campaign Execution,sync,_lr/sync/workflows/outbound-campaign/workflow.yaml
+portfolio-deploy,Portfolio GitHub Deployment,sync,_lr/sync/workflows/portfolio-deploy/workflow.yaml
+application-track,Application Pipeline Tracking,sync,_lr/sync/workflows/application-track/workflow.yaml
+quick-optimize,Quick Resume Optimization,sync,_lr/sync/workflows/quick-optimize/workflow.yaml
+signal-capture,Career Signal Capture,sync,_lr/sync/workflows/signal-capture/workflow.yaml
+content-automation,Social Signal Amplification,flex,_lr/flex/workflows/content-automation/workflow.yaml
+enterprise-ship,Enterprise-Grade Delivery,squick,_lr/squick/workflows/enterprise-ship/workflow.md
+squick-analysis,Squick Phase 1: Analysis,squick,_lr/squick/workflows/1-analysis/workflow.yaml
+squick-plan,Squick Phase 2: Planning,squick,_lr/squick/workflows/2-plan/workflow.yaml
+squick-solutioning,Squick Phase 3: Solutioning,squick,_lr/squick/workflows/3-solutioning/workflow.yaml
+squick-implementation,Squick Phase 4: Implementation,squick,_lr/squick/workflows/4-implementation/workflow.yaml
+agent-builder,Linkright Builder: Agent,lrb,_lr/lrb/workflows/agent/workflow-create-agent.md
+module-builder,Linkright Builder: Module,lrb,_lr/lrb/workflows/module/workflow-create-module.md
+qa-builder,Linkright Builder: QA,lrb,_lr/lrb/workflows/qa/workflow-generate-tests.md
+narrative-craft,Professional Narrative Crafting,cis,_lr/cis/workflows/narrative-craft/workflow.yaml
+resume-validation,Resume Validation,tea,_lr/tea/workflows/resume-validation/workflow.yaml

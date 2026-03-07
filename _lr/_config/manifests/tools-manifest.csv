@@ -1,5 +1,0 @@
-name,module,displayName,description,path,standalone
-"vitest","core","Vitest","Core unit and integration testing runner.","npx vitest",true
-"playwright","core","Playwright","Full workflow and E2E browser testing.","npx playwright",true
-"beads","core","Beads","Persistent memory and task management CLI.","bd",true
-"lr-help","core","Linkright Help","Contextual help and advice generator.","_lr/core/workflows/lr-help.md",false

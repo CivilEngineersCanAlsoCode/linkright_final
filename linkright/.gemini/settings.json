@@ -1,0 +1,4 @@
+{
+  "agent": "lr-orchestrator",
+  "config": "_lr/lr-config.yaml"
+}

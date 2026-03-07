@@ -1,0 +1,11 @@
+name: signal-capture
+description: "Capture and structure raw professional signals into the career ontology"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/sync/workflows/signal-capture"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/templates/career-signals.template.md"
+checklist: "{installed_path}/checklist.md"
+input_file_patterns:
+  raw_input:
+    pattern: "data/raw-input.md"
+    strategy: FULL_LOAD

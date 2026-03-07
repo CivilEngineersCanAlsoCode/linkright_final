@@ -1,0 +1,10 @@
+---
+ontology:
+  name: Sync Standard JD Ontology
+  version: 1.0.0
+  rules:
+    - name: Tech Stack
+      required: true
+    - name: Metrics
+      required: false
+---

@@ -1,0 +1,8 @@
+# TEA (Technical Evaluation & Automation) Module Configuration
+
+module_id: tea
+enabled: true
+priority: 5
+
+features:
+  resume_validation: true

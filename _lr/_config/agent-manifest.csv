@@ -1,7 +1,0 @@
-"agent_id","agent_name","persona_path","module"
-"lr-orchestrator","Linkright Orchestrator","core/agents/lr-orchestrator.md","core"
-"lr-tracker","Linkright Tracker","core/agents/lr-tracker.md","core"
-"sync-parser","Sync Parser","sync/agents/sync-parser.md","sync"
-"sync-linker","Sync Linker","sync/agents/sync-linker.md","sync"
-"sync-publicist","Sync Publicist","sync/agents/sync-publicist.md","sync"
-"flex-publicist","Flex Publicist","flex/agents/flex-publicist.md","flex"

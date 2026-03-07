@@ -1,6 +1,0 @@
-name,module,displayName,description,path
-"qa-standards","lrb","QA Standards","Philosophy and testing hierarchy.","_lr/lrb/workflows/qa/data/qa-standards.md"
-"test-patterns","lrb","Test Patterns","Vitest and Playwright implementation patterns.","_lr/lrb/workflows/qa/data/test-patterns.md"
-"coverage-rules","lrb","Coverage Rules","Mandatory thresholds and critical paths.","_lr/lrb/workflows/qa/data/coverage-rules.md"
-"module-standards","lrb","Module Standards","Architecture and structural requirements.","_lr/lrb/workflows/module/data/module-standards.md"
-"agent-architecture","lrb","Agent Architecture","Persona and activation standards.","_lr/lrb/workflows/module/data/agent-architecture.md"

@@ -1,0 +1,14 @@
+name: portfolio-deploy
+description: "Portfolio case study assembly and deployment"
+config_source: "{project-root}/_lr/_config/manifest.yaml"
+installed_path: "{project-root}/_lr/sync/workflows/portfolio-deploy"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+template: "{installed_path}/templates/portfolio.template.md"
+input_file_patterns:
+  signals:
+    pattern: "data/signals.yaml"
+    strategy: FULL_LOAD
+  scout_data:
+    pattern: "data/scout-*.json"
+    strategy: SELECTIVE_LOAD

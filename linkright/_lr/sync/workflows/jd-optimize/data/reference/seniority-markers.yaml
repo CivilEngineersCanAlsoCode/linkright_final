@@ -1,0 +1,5 @@
+seniority_markers:
+  junior: [guided, contributed, assisted]
+  mid: [led, implemented, designed]
+  senior: [architected, mentored, drove strategy]
+  staff: [influenced org, defined technical vision, cross-org impact]

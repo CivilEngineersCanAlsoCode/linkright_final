@@ -1,0 +1,15 @@
+branded_vocabulary:
+  version: 1.0.0
+  tokens:
+    action_verbs:
+      - Architected
+      - Engineered
+      - Orchestrated
+      - Spearheaded
+      - Optimized
+    impact_modifiers:
+      - enterprise-scale
+      - production-grade
+      - mission-critical
+      - high-throughput
+    domain_terms: []

@@ -1,0 +1,9 @@
+{
+  "name": "linkright-installer",
+  "version": "1.0.0",
+  "description": "Installer for the Linkright AI Professional Pipeline",
+  "scripts": {
+    "sync": "node sync.js",
+    "onboard": "node onboard.js"
+  }
+}

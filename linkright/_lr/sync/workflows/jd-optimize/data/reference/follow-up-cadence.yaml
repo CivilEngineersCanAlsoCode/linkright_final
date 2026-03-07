@@ -1,0 +1,4 @@
+follow_up_cadence:
+  post_apply: 5_business_days
+  post_interview: 1_business_day
+  post_rejection: 30_days_for_reapply

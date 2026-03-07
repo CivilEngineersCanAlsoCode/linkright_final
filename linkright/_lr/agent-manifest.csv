@@ -1,0 +1,31 @@
+agent_id,name,title,icon,module,path,sidecar_path
+lr-orchestrator.md,Aether,Central Brain & Orchestrator,🧠,core,_lr/core/agents/lr-orchestrator.md,_lr/_memory/lr-orchestrator-sidecar/
+lr-tracker.md,Navi,Governance & Memory Manager,📊,core,_lr/core/agents/lr-tracker.md,_lr/_memory/lr-tracker-sidecar/
+lr-agent-builder.md,Bond,Agent Builder Specialist,🕵️‍♂️,lrb,_lr/lrb/agents/lr-agent-builder.md,_lr/_memory/bond-sidecar/
+lr-module-builder.md,Morgan,Module Builder Specialist,🏗️,lrb,_lr/lrb/agents/lr-module-builder.md,_lr/_memory/morgan-sidecar/
+lr-workflow-builder.md,Wendy,Workflow Builder Specialist,🌪️,lrb,_lr/lrb/agents/lr-workflow-builder.md,_lr/_memory/wendy-sidecar/
+lr-qa.md,Quinn,Quality Assurance Specialist,🧪,lrb,_lr/lrb/agents/lr-qa.md,_lr/_memory/qa-sidecar/
+lr-analyst.md,M,Module Analyst,🧐,lrb,_lr/lrb/agents/lr-analyst.md,_lr/_memory/m-sidecar/
+lr-test-engineer.md,Q,Test Engineer,⚙️,lrb,_lr/lrb/agents/lr-test-engineer.md,_lr/_memory/q-sidecar/
+sync-parser.md,Orion,Lead Signal Engineer,📡,sync,_lr/sync/agents/sync-parser.md,_lr/_memory/sync-parser-sidecar/
+sync-sizer.md,Kael,The Strict Gatekeeper,📏,sync,_lr/sync/agents/sync-sizer.md,_lr/_memory/sync-sizer-sidecar/
+sync-refiner.md,Veda,The Sculptor,💎,sync,_lr/sync/agents/sync-refiner.md,_lr/_memory/sync-refiner-sidecar/
+sync-linker.md,Atlas,Matching Architect,🔗,sync,_lr/sync/agents/sync-linker.md,_lr/_memory/sync-linker-sidecar/
+sync-styler.md,Cora,Visual Craftsman,🎨,sync,_lr/sync/agents/sync-styler.md,_lr/_memory/sync-styler-sidecar/
+sync-scout.md,Lyra,Field Intelligence Agent,🔭,sync,_lr/sync/agents/sync-scout.md,_lr/_memory/sync-scout-sidecar/
+sync-publicist.md,Lyric,Outreach Engineer,📣,sync,_lr/sync/agents/sync-publicist.md,_lr/_memory/sync-publicist-sidecar/
+sync-inquisitor.md,Sia,The Probing Interviewer,❓,sync,_lr/sync/agents/sync-inquisitor.md,_lr/_memory/sync-inquisitor-sidecar/
+sync-narrator.md,Mnemosyne,Memory Synthesizer,🧠,sync,_lr/sync/agents/sync-narrator.md,
+sync-tracker.md,Ledger,Success Officer,📊,sync,_lr/sync/agents/sync-tracker.md,
+flex-publicist.md,Echo,Social Brand Strategist,🌊,flex,_lr/flex/agents/flex-publicist.md,_lr/_memory/flex-publicist-sidecar/
+squick-pm.md,Piper,Enterprise Product Manager,📋,squick,_lr/squick/agents/squick-pm.md,_lr/_memory/squick-pm-sidecar/
+squick-analyst.md,Alex,Data Analyst,📊,squick,_lr/squick/agents/squick-analyst.md,_lr/_memory/squick-analyst-sidecar/
+squick-architect.md,Arthur,Solution Architect,🏗️,squick,_lr/squick/agents/squick-architect.md,_lr/_memory/squick-architect-sidecar/
+squick-sm.md,Sasha,Scrum Master,⚖️,squick,_lr/squick/agents/squick-sm.md,_lr/_memory/squick-sm-sidecar/
+squick-qa.md,Vera,QA Specialist,🧪,squick,_lr/squick/agents/squick-qa.md,_lr/_memory/squick-qa-sidecar/
+squick-ux.md,Ula,Enterprise UX Strategist,✨,squick,_lr/squick/agents/squick-ux.md,_lr/_memory/squick-ux-sidecar/
+squick-tech-writer.md,Tycho,Enterprise Documentation Engineer,✍️,squick,_lr/squick/agents/squick-tech-writer.md,_lr/_memory/squick-tech-writer-sidecar/
+cis-architect.md,Cis-Architect,Senior Technical Agent,🛡️,cis,_lr/cis/agents/cis-architect.md,
+cis-engineer.md,Cis-Engineer,Senior Technical Agent,🛡️,cis,_lr/cis/agents/cis-engineer.md,
+tea-scout.md,Tea-Scout,Senior Technical Agent,🛡️,tea,_lr/tea/agents/tea-scout.md,
+tea-validator.md,Tea-Validator,Senior Technical Agent,🛡️,tea,_lr/tea/agents/tea-validator.md,
