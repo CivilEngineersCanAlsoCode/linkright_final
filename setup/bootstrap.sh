@@ -101,7 +101,7 @@ allocate_dolt_port() {
     local port_cmd
     port_cmd=$(ps -p "$port_user" -o comm= 2>/dev/null || echo "unknown")
 
-    if [[ "$port_cmd" == "dolt" ]]; then
+    if [[ "$port_cmd" == *"dolt"* ]]; then
       # Our dolt is already running on this port — that's fine
       info "Dolt already running on port $port (PID $port_user)"
     else
@@ -351,6 +351,9 @@ run_phase() {
   local exit_code=0
 
   # Start phase in background for timeout control
+  # NOTE: Exit code from process substitution (> >(...)) can be unreliable in bash.
+  # This is acceptable because run_phase always returns 0 (continues to next phase).
+  # The exit code is only used for bug reporting, not flow control.
   "phase_$phase_num" > >(while IFS= read -r line; do echo "$line"; echo "$line" >> "$PHASE_LOG"; echo "$line" >> "$FULL_LOG"; done) 2>&1 &
   local pid=$!
 
@@ -936,15 +939,15 @@ phase_6() {
     warn "5/7 MCP servers not verified (check manually: claude mcp list)"
   fi
 
-  # Check 6: ChromaDB accessible
+  # Check 6: ChromaDB API responds (list collections — deeper than heartbeat)
   total=$((total + 1))
   if [[ "$DOCKER_AVAILABLE" != true ]]; then
     warn "6/7 ChromaDB skipped (Docker not available)"
-  elif curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
-    pass "6/7 ChromaDB accessible (collection check needs Claude Code)"
+  elif curl -sf "http://localhost:8000/api/v2/collections" &>/dev/null; then
+    pass "6/7 ChromaDB API accessible (collections endpoint)"
     passed=$((passed + 1))
   else
-    warn "6/7 ChromaDB collection not tested"
+    warn "6/7 ChromaDB API not responding"
   fi
 
   # Check 7: bd prime

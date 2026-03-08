@@ -730,6 +730,6 @@ Run `bd list --status=open --parent=<epic>` → shows remaining tasks. Resume fr
 
 ## Project-Specific Context
 
-- **Repo**: `linkright_final` — agentic AI career signal processing ecosystem
+- **Repo**: `sync` — agentic AI career signal processing ecosystem
 - **Context directory**: `context/` is READ-ONLY. Never modify files inside it.
-- **Structure**: Root contains only `setup/`, `context/`, `CLAUDE.md`, `AGENTS.md`, `.gitignore`
+- **Structure**: `setup/`, `context/`, `.agents/`, `CLAUDE.md`, `AGENTS.md`, `session_history.md`, `.gitignore`

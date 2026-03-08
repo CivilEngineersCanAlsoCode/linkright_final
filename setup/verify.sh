@@ -185,9 +185,9 @@ check_warn 4 "Agent Mail healthy"       "curl -sf $AGENT_MAIL_HEALTH"
 check_warn 5 "MCP servers connected"    "command -v claude && claude mcp list 2>/dev/null | grep -q chromadb"
 
 if [[ "$DOCKER_AVAILABLE" == true ]]; then
-  check      6 "ChromaDB port accessible" "curl -sf $CHROMADB_HEALTH"
+  check      6 "ChromaDB API accessible"  "curl -sf http://localhost:8000/api/v2/collections"
 else
-  check_skip 6 "ChromaDB port accessible" "Docker not available"
+  check_skip 6 "ChromaDB API accessible"  "Docker not available"
 fi
 
 check      7 "bd prime loads context"   "bd prime"
