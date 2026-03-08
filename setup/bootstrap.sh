@@ -42,6 +42,10 @@ FULL_LOG="/tmp/bootstrap-full-$$.log"
 BD_MIN_VERSION="0.59.0"       # bd (Go) — minimum version with memory features
 CHROMADB_IMAGE="chromadb/chroma:latest"  # ChromaDB Docker image
 
+# Dolt server port range: 13400-13599 (200 ports for different projects)
+DOLT_PORT_BASE=13400
+DOLT_PORT_RANGE=200
+
 # Capability flags — set during Phase 0, used by later phases
 DOCKER_AVAILABLE=false
 UV_AVAILABLE=false
@@ -60,6 +64,55 @@ pass() { echo -e "${GREEN}✓ $1${NC}"; }
 fail() { echo -e "${RED}✗ $1${NC}"; }
 warn() { echo -e "${YELLOW}⚠ $1${NC}"; }
 info() { echo -e "  $1"; }
+
+# ─────────────────────────────────────────────
+# Dolt port allocation (deterministic per project)
+# ─────────────────────────────────────────────
+# Each project gets a unique port based on its directory name hash.
+# Range: DOLT_PORT_BASE to DOLT_PORT_BASE+DOLT_PORT_RANGE (13400-13599)
+# This prevents port conflicts when multiple projects run dolt servers.
+#
+# Port mapping (deterministic — same project always gets same port):
+#   project_name → hash → port in [13400, 13599]
+#
+# To see your project's port: grep "port:" .beads/dolt/config.yaml
+# To see all active dolt ports: lsof -i -P | grep dolt | grep LISTEN
+
+allocate_dolt_port() {
+  local project_name="$1"
+  # Generate deterministic port from project name using cksum (portable)
+  local hash_val
+  hash_val=$(echo -n "$project_name" | cksum | awk '{print $1}')
+  local port=$(( DOLT_PORT_BASE + (hash_val % DOLT_PORT_RANGE) ))
+
+  # Check if port is in use by ANOTHER process (not our own dolt)
+  if lsof -i :"$port" &>/dev/null; then
+    local port_user
+    port_user=$(lsof -i :"$port" -t 2>/dev/null | head -1)
+    local port_cmd
+    port_cmd=$(ps -p "$port_user" -o comm= 2>/dev/null || echo "unknown")
+
+    if [[ "$port_cmd" == "dolt" ]]; then
+      # Our dolt is already running on this port — that's fine
+      info "Dolt already running on port $port (PID $port_user)"
+    else
+      # Conflict! Try next ports until we find a free one
+      warn "Port $port in use by $port_cmd — scanning for free port..."
+      local offset=1
+      while [[ $offset -lt $DOLT_PORT_RANGE ]]; do
+        local try_port=$(( DOLT_PORT_BASE + ((hash_val + offset) % DOLT_PORT_RANGE) ))
+        if ! lsof -i :"$try_port" &>/dev/null; then
+          port=$try_port
+          info "Found free port: $port"
+          break
+        fi
+        offset=$((offset + 1))
+      done
+    fi
+  fi
+
+  echo "$port"
+}
 
 # ─────────────────────────────────────────────
 # Parse args
@@ -585,24 +638,32 @@ phase_1() {
     fi
   fi
 
-  # Step 3: Enable JSONL-only mode (no-db)
-  # Dolt server mode is unstable with multiple projects (port conflicts, idle timeouts).
-  # JSONL-only mode: no server needed, memories still work, syncs via git.
-  if [[ -f ".beads/config.yaml" ]]; then
-    if grep -q "^# no-db: false" ".beads/config.yaml"; then
-      sed -i '' 's/^# no-db: false/no-db: true/' ".beads/config.yaml"
-    elif ! grep -q "^no-db:" ".beads/config.yaml"; then
-      echo "no-db: true" >> ".beads/config.yaml"
-    fi
-    pass "JSONL-only mode enabled (no Dolt server needed)"
+  # Step 3: Allocate unique dolt server port for this project
+  # Each project gets a deterministic port based on its name, preventing conflicts
+  # when multiple projects (e.g. sync + Antigravity) run simultaneously.
+  local project_name
+  project_name=$(basename "$(pwd)")
+  local dolt_port
+  dolt_port=$(allocate_dolt_port "$project_name")
+  pass "Dolt port for '$project_name': $dolt_port"
+
+  # Step 4: Configure dolt server with the allocated port
+  if [[ -f ".beads/dolt/config.yaml" ]]; then
+    # Update port in dolt config.yaml
+    sed -i '' "s/port: [0-9]*/port: $dolt_port/" ".beads/dolt/config.yaml"
+    pass "Dolt config.yaml updated with port $dolt_port"
   fi
+  # Write port file (bd reads this to find the server)
+  echo "$dolt_port" > ".beads/dolt-server.port"
+  # Set port in metadata.json via bd command
+  bd dolt set port "$dolt_port" 2>/dev/null || true
 
-  # Step 4: Stop any dolt server that bd init may have started (not needed in no-db mode)
-  bd dolt stop 2>/dev/null || true
+  # Step 5: Fix dolt database name (init creates prefix-named db, default expects "beads")
+  bd dolt set database "$project_name" 2>/dev/null || true
 
-  # Step 5: Final verification
+  # Step 6: Final verification
   bd info
-  pass "Beads ready"
+  pass "Beads ready (dolt port: $dolt_port)"
 }
 
 # ─────────────────────────────────────────────
