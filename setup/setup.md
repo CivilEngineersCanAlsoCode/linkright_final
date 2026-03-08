@@ -728,6 +728,79 @@ Run `bd list --status=open --parent=<epic>` → shows remaining tasks. Resume fr
 
 ---
 
+## 21. Agent Workflows Setup
+
+Agent workflows live in `.agents/workflows/` and are invoked by referencing them in prompts (e.g., `@.agents/workflows/sync-beads.md`).
+
+### Available Workflows
+
+| Workflow | File | Purpose |
+|----------|------|---------|
+| **sync-beads** | `.agents/workflows/sync-beads.md` | Task management & memory management via beads. Use before any plan with 3+ steps. |
+| **sync-session** | `.agents/workflows/sync-session.md` | Records terminal activity as a chronological story in `session_history.md`. |
+
+### Setup Instructions
+
+Workflows require no installation — they're markdown files read by Claude Code at invocation time.
+
+**Step 1**: Ensure the directory structure exists:
+
+```bash
+mkdir -p .agents/workflows
+```
+
+**Step 2**: Create `sync-beads.md` — task & memory management workflow:
+
+```yaml
+---
+description: Task Management and Memory Management expert called Beads, to be used before execution of any plan with more than 3 steps
+---
+```
+
+Key contents:
+- bd (Go) quick reference commands (ready, show, update, close, sync, prime)
+- Non-interactive shell command patterns (cp -f, mv -f, rm -f)
+- Issue hierarchy (Epic → Feature → User Story → Task → Subtask)
+- Issue types, priorities, agent workflow steps
+- Session protocol (starting: bd prime → bd dolt pull → bd ready)
+- Session closing checklist (git pull --rebase → bd sync → git push)
+
+> **IMPORTANT**: Must include warning about NOT using `br` (beads_rust) — only `bd` (Go) has memory features.
+
+**Step 3**: Create `sync-session.md` — session history recorder:
+
+```yaml
+---
+description: Claude terminal history ko ek kahani (story) ki tarah session_history.md mein record karna
+---
+```
+
+Key contents:
+- Reads `~/.claude/history.jsonl` for terminal history
+- Analyzes each interaction
+- Updates `session_history.md` in third-person Romanized Hindi (story format)
+- Reports latest status to user
+
+### How to Use
+
+```bash
+# In Claude Code prompts:
+# Plan work using beads workflow:
+"plan using beads @.agents/workflows/sync-beads.md"
+
+# Record session history:
+"@.agents/workflows/sync-session.md"
+```
+
+### Adding New Workflows
+
+1. Create a `.md` file in `.agents/workflows/`
+2. Add YAML frontmatter with `description:` field
+3. Write instructions the agent should follow
+4. Reference via `@.agents/workflows/<name>.md` in prompts
+
+---
+
 ## Project-Specific Context
 
 - **Repo**: `sync` — agentic AI career signal processing ecosystem
