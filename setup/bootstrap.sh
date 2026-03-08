@@ -401,6 +401,11 @@ recover_beads() {
 
     # Step 7: Fresh init
     if bd init 2>&1; then
+      # Step 7.5: Fix dolt database name (init creates prefix-named db, default expects "beads")
+      local prefix
+      prefix=$(basename "$(pwd)")
+      bd dolt set database "$prefix" 2>/dev/null || true
+
       # Step 8: Verify the fresh init actually works
       sleep 2  # give dolt server time to start
       if verify_beads_health; then
@@ -583,7 +588,16 @@ phase_1() {
     fi
   fi
 
-  # Step 3: Final verification
+  # Step 3: Fix dolt database name mismatch
+  # bd init creates a dolt database named after the project prefix (e.g., "sync")
+  # but the default dolt_database config is "beads". This causes "database not found"
+  # errors whenever the dolt server restarts. Fix it immediately after init.
+  local prefix
+  prefix=$(basename "$(pwd)")
+  bd dolt set database "$prefix" 2>/dev/null || true
+  pass "Dolt database name set to '$prefix'"
+
+  # Step 4: Final verification
   bd info
   pass "Beads ready"
 }
