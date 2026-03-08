@@ -1,3 +1,5 @@
 agent: tea-scout
-custom_rules: []
+custom_rules:
+  - "Always load risk-governance.md before classifying scenarios by probability-impact"
+  - "When recommending test type, cite test-levels-framework.md fragment (unit vs E2E reasoning)"
 project_overrides: {}

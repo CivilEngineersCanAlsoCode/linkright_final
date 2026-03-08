@@ -1,6 +1,12 @@
-"tool_id","description","endpoint"
-"mongodb_crud","Direct operations on Linkright signal database.","internal"
-"chromadb_query","Vector search for viral insights and JD patterns.","internal"
-"n8n_dispatch","Trigger for cloud posting workflows.","${N8N_WEBHOOK}"
-"airtable_log","Dumps social copy into the content staging base.","${AIRTABLE_WEBHOOK}"
-"gh_pages_deploy","Pushes career portfolio code to GitHub.","internal"
+id,name,type,category,path,module,status,created_date,description
+tm-001,jd-optimizer,workflow,signal-processing,_lr/sync/workflows/jd-optimize/,sync,active,2026-03-08,Multi-phase JD optimization and positioning
+tm-002,party-mode,workflow,discussion,_lr/core/workflows/party-mode/,core,active,2026-03-08,Multi-agent orchestrated discussion
+tm-003,squick-analysis,workflow,optimization,_lr/squick/workflows/1-analysis/,squick,active,2026-03-08,Signal analysis and gap identification
+tm-004,squick-plan,workflow,optimization,_lr/squick/workflows/2-plan/,squick,active,2026-03-08,Optimization strategy generation
+tm-005,squick-solution,workflow,optimization,_lr/squick/workflows/3-solutioning/,squick,active,2026-03-08,Solution design for gaps
+tm-006,squick-implementation,workflow,optimization,_lr/squick/workflows/4-implementation/,squick,active,2026-03-08,Narrative and content implementation
+tm-007,squick-enterprise,workflow,deployment,_lr/squick/workflows/enterprise-ship/,squick,active,2026-03-08,Enterprise-scale deployment
+tm-008,beads,utility,task-tracking,beads,core,active,2026-03-08,Task tracking via Dolt database
+tm-009,agent-mail,utility,communication,agent-mail,core,active,2026-03-08,Multi-agent coordination and messaging
+tm-010,chromadb,utility,search,chromadb,core,active,2026-03-08,Semantic search and knowledge base
+tm-011,mongodb,utility,persistence,mongodb,core,active,2026-03-08,Persistent session and signal storage

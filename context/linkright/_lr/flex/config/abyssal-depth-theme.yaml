@@ -1,0 +1,214 @@
+# Abyssal Depth Theme Configuration for frontend-slides
+# Release 3 E2 v2 - Slides Integration
+# Generated: 2026-03-09
+
+theme:
+  name: "Abyssal Depth"
+  base_style: "dark-botanical"
+  version: "1.0.0"
+
+colors:
+  primary:
+    darkest: "#0a1810"        # Near-black with depth
+    deep: "#0f1f1f"           # Very dark teal (backgrounds)
+    core: "#1a3a3a"           # Deep forest green (primary)
+    teal: "#2d5a5a"           # Medium teal (secondary)
+    accent: "#4a8f8f"         # Abyssal blue (highlights)
+    light: "#6db3b3"          # Light teal (emphasis)
+
+  text:
+    primary: "#e8f0f0"        # Light cream (main text)
+    muted: "#b8d4d4"          # Muted teal (secondary text)
+    highlight: "#a0d5d5"      # Highlight color
+
+  effects:
+    overlay: "rgba(10, 24, 16, 0.8)"
+    glass: "rgba(29, 58, 58, 0.4)"
+
+typography:
+  font_family: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif"
+  sizes:
+    title: "2.5rem"           # 40px
+    subtitle: "1.75rem"       # 28px
+    body: "1.125rem"          # 18px
+    small: "0.875rem"         # 14px
+  weights:
+    regular: 400
+    medium: 500
+    bold: 600
+    extra_bold: 700
+  line_heights:
+    tight: 1.2
+    normal: 1.6
+    relaxed: 1.8
+  letter_spacing:
+    tight: "-0.01em"
+    normal: "0em"
+    relaxed: "0.05em"
+
+spacing:
+  slide_padding: "3rem"       # 48px on all sides
+  content_gap: "1.5rem"       # 24px between sections
+  bullet_gap: "0.75rem"       # 12px between bullets
+  metric_gap: "2rem"          # 32px between metrics
+  title_bottom: "1.5rem"      # 24px below title
+
+gradients:
+  primary: "linear-gradient(135deg, #1a3a3a 0%, #4a8f8f 100%)"
+  deep_to_core: "linear-gradient(180deg, #0f1f1f 0%, #1a3a3a 100%)"
+  subtle: "linear-gradient(135deg, rgba(26, 58, 58, 0.8) 0%, rgba(45, 90, 90, 0.8) 100%)"
+  accent_to_light: "linear-gradient(135deg, #4a8f8f 0%, #6db3b3 100%)"
+
+styles:
+  slide_container:
+    background: "linear-gradient(135deg, #0f1f1f 0%, #1a3a3a 100%)"
+    color: "#e8f0f0"
+    padding: "3rem"
+    min_height: "600px"
+    display: "flex"
+    flex_direction: "column"
+    justify_content: "center"
+
+  title:
+    color: "#4a8f8f"
+    font_size: "2.5rem"
+    font_weight: 600
+    letter_spacing: "0.05em"
+    margin_bottom: "1.5rem"
+    text_transform: "none"
+
+  subtitle:
+    color: "#b8d4d4"
+    font_size: "1.125rem"
+    font_weight: 400
+    margin_bottom: "2rem"
+    font_style: "italic"
+
+  body:
+    color: "#e8f0f0"
+    font_size: "1.125rem"
+    line_height: 1.6
+    margin_bottom: "1.5rem"
+
+  bullet:
+    color: "#e8f0f0"
+    font_size: "1rem"
+    line_height: 1.5
+    margin_left: "2rem"
+    margin_bottom: "0.75rem"
+    list_style: "disc"
+
+  metric:
+    background: "#1a3a3a"
+    border: "1px solid #2d5a5a"
+    border_radius: "8px"
+    padding: "1.5rem"
+    text_align: "center"
+
+  metric_value:
+    color: "#4a8f8f"
+    font_size: "2.5rem"
+    font_weight: bold
+    letter_spacing: "0.05em"
+
+  metric_label:
+    color: "#b8d4d4"
+    font_size: "0.875rem"
+    font_weight: 500
+    text_transform: "uppercase"
+    letter_spacing: "0.1em"
+
+  code_block:
+    background: "#0f1f1f"
+    color: "#6db3b3"
+    border_left: "3px solid #4a8f8f"
+    padding: "1rem"
+    font_family: "'JetBrains Mono', 'Courier New', monospace"
+    font_size: "0.875rem"
+    line_height: 1.4
+    overflow_x: "auto"
+
+  button:
+    background: "#2d5a5a"
+    color: "#e8f0f0"
+    border: "2px solid #4a8f8f"
+    border_radius: "4px"
+    padding: "0.75rem 1.5rem"
+    font_size: "1rem"
+    font_weight: 500
+    cursor: "pointer"
+    transition: "all 0.3s ease"
+
+  button_hover:
+    background: "#4a8f8f"
+    transform: "translateY(-2px)"
+    box_shadow: "0 4px 12px rgba(74, 143, 143, 0.3)"
+
+navigation:
+  prev_button:
+    label: "← Previous"
+    styling: "button"
+  next_button:
+    label: "Next →"
+    styling: "button"
+  slide_counter:
+    color: "#b8d4d4"
+    font_size: "0.875rem"
+    font_weight: 500
+
+animations:
+  slide_transition:
+    type: "fade"
+    duration: "0.3s"
+    easing: "ease-in-out"
+
+  button_hover:
+    type: "glow"
+    duration: "0.3s"
+
+  entrance:
+    type: "fadeIn"
+    duration: "0.6s"
+    easing: "ease-out"
+    stagger: "0.1s"
+
+accessibility:
+  contrast_ratio: 4.5          # WCAG AA minimum
+  focus_outline: "2px solid #4a8f8f"
+  keyboard_nav: true
+  skip_to_content: true
+  aria_labels: true
+
+responsive:
+  breakpoints:
+    mobile: 375px
+    tablet: 768px
+    desktop: 1024px
+    large: 1440px
+
+  mobile:
+    font_size: "body: 1rem, title: 1.75rem"
+    padding: "1.5rem"
+    title_bottom: "1rem"
+
+  tablet:
+    font_size: "body: 1.0625rem, title: 2rem"
+    padding: "2rem"
+    title_bottom: "1.25rem"
+
+  desktop:
+    font_size: "body: 1.125rem, title: 2.5rem"
+    padding: "3rem"
+    title_bottom: "1.5rem"
+
+exports:
+  css_variables: true
+  tailwind_config: false
+  sass_variables: true
+
+# Integration points
+integrations:
+  portfolio_workflow: "flex/workflows/portfolio-deploy"
+  tea_testing: "tea/workflows/e2e-profile-testing"
+  slide_renderer: "flex/lib/frontend-slides-wrapper.ts"
+  content_transformer: "flex/lib/signal-to-slides-transformer.ts"

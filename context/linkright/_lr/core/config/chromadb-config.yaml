@@ -1,8 +1,56 @@
-connection: "localhost:8000"
-collection: "career_embeddings"
-embedding_model: "text-embedding-3-small"
-retrieval:
-  top_k: 5
-  similarity_threshold: 0.75
-options:
-  persist_directory: "./chroma_db"
+# ChromaDB Configuration for Linkright
+# Version: 2.0
+# Purpose: Vector store for semantic search of resumes, JDs, and signal retrieval
+
+database:
+  type: "chromadb"
+  persistence_path: "${CHROMADB_PATH:-./data/chromadb}"
+  collection_prefix: "linkright"
+
+collections:
+  resume_embeddings:
+    name: "resumes"
+    description: "Optimized resume embeddings for semantic matching"
+    metadata_fields:
+      - user_id
+      - version
+      - created_date
+      - signal_density
+
+  jd_embeddings:
+    name: "job_descriptions"
+    description: "Job description embeddings for signal alignment"
+    metadata_fields:
+      - company_id
+      - role_level
+      - domain
+      - requirements_count
+
+  signal_library:
+    name: "professional_signals"
+    description: "Pre-extracted professional signals indexed by skill/impact"
+    metadata_fields:
+      - signal_type
+      - context
+      - industry
+      - seniority_level
+
+embedding_model:
+  provider: "openai"
+  model: "text-embedding-3-small"
+  dimensions: 1536
+  batch_size: 50
+
+similarity:
+  metric: "cosine"
+  threshold: 0.7
+
+performance:
+  enable_query_cache: true
+  cache_ttl_seconds: 3600
+  max_results_per_query: 100
+
+indexing:
+  enabled: true
+  schedule: "0 3 * * *"
+  rebuild_threshold: 0.2

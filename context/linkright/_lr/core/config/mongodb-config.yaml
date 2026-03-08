@@ -1,11 +1,65 @@
-connection_string: "mongodb://localhost:27017"
-database: "linkright"
+# MongoDB Configuration for Linkright
+# Version: 2.0
+# Purpose: Central data store for beads task tracking and project metadata
+
+database:
+  name: "linkright-prod"
+  version: "5.0+"
+  connection:
+    host: "${MONGODB_HOST:-localhost}"
+    port: "${MONGODB_PORT:-27017}"
+    username: "${MONGODB_USER}"
+    password: "${MONGODB_PASSWORD}"
+    ssl: true
+    replicaSet: "rs0"
+
 collections:
-  users: "Profile definitions"
-  career_signals: "Granular signal blocks"
-  jd_profiles: "Targets scraped from JDs"
-  resume_versions: "Immutable artifact snapshots"
-  success_ledger: "Feedback and ROI outcomes"
-options:
-  timeout_ms: 5000
-  retry_writes: true
+  # Beads Task Tracking
+  issues:
+    name: "beads_issues"
+    indexes:
+      - keys: { id: 1 }
+        unique: true
+      - keys: { status: 1, parent: 1 }
+        name: "status_parent_idx"
+      - keys: { created_date: -1 }
+        name: "date_idx"
+
+  # Release Metadata
+  releases:
+    name: "releases"
+    indexes:
+      - keys: { version: 1 }
+        unique: true
+      - keys: { created_date: -1 }
+
+  # Agent Manifest
+  agents:
+    name: "agent_registry"
+    indexes:
+      - keys: { name: 1 }
+        unique: true
+      - keys: { module: 1 }
+
+retention:
+  closed_issues_days: 90
+  archives_days: 365
+  audit_logs_days: 30
+
+performance:
+  batch_size: 1000
+  read_preference: "primary"
+  write_concern:
+    w: "majority"
+    j: true
+    wtimeout: 5000
+
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention_days: 30
+  location: "${BACKUP_BUCKET}"
+
+monitoring:
+  slow_query_threshold_ms: 100
+  profiling_level: 1

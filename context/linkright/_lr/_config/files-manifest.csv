@@ -1,6 +1,11 @@
-"file_id","path","description"
-"master-prompt","LINKRIGHT-MASTER-PROMPT-v4.md","Global system source of truth."
-"system-config","_lr/lr-config.yaml","Unified system configuration."
-"signal-library","_lr/core/knowledge/signals.json","Historical work signals (MongoDB stub)."
-"voice-profile","_lr/_memory/insights-sidecar/voice-profile.md","User brand voice definition."
-"agent-manifest","_lr/_config/agent-manifest.csv","Registry of all system agents."
+id,name,type,path,module,size_bytes,status,created_date,description
+fc-001,LR-CONFIG,yaml,_lr/lr-config.yaml,core,512,active,2026-03-08,Central Linkright configuration
+fc-002,AGENT-MANIFEST,csv,_lr/_config/agent-manifest.csv,core,8192,active,2026-03-08,Registry of all 29 agents
+fc-003,WORKFLOW-MANIFEST,csv,_lr/_config/workflow-manifest.csv,core,2986,active,2026-03-08,Registry of all 28 workflows
+fc-004,ADR-TEMPLATE,markdown,_lr/docs/adrs/ADR_TEMPLATE.md,core,2816,active,2026-03-08,Architecture Decision Record template
+fc-005,ADR-001,markdown,_lr/docs/adrs/ADR-001-e2-defer-rationale.md,core,2304,active,2026-03-08,ADR: Phase E2 deferral
+fc-006,ADR-002,markdown,_lr/docs/adrs/ADR-002-agents-vs-bmad.md,core,2432,active,2026-03-08,ADR: Agent count decision
+fc-007,ADR-003,markdown,_lr/docs/adrs/ADR-003-squick-integration.md,core,2560,active,2026-03-08,ADR: Squick integration
+fc-008,ADR-004,markdown,_lr/docs/adrs/ADR-004-tea-kb-empty.md,core,2880,active,2026-03-08,ADR: TEA knowledge base
+fc-009,ADR-005,markdown,_lr/docs/adrs/ADR-005-config-structure.md,core,2752,active,2026-03-08,ADR: Configuration structure
+fc-010,RELEASE-4-AUDIT,markdown,_lr/releases/Release_4.md,core,57344,active,2026-03-08,Comprehensive quality audit
