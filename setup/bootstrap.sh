@@ -65,6 +65,15 @@ fail() { echo -e "${RED}✗ $1${NC}"; }
 warn() { echo -e "${YELLOW}⚠ $1${NC}"; }
 info() { echo -e "  $1"; }
 
+# Portable sed in-place edit (macOS uses -i '', Linux uses -i)
+sedi() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
 # ─────────────────────────────────────────────
 # Dolt port allocation (deterministic per project)
 # ─────────────────────────────────────────────
@@ -540,9 +549,12 @@ phase_0() {
     warn "gh CLI not found (used for bug reporting only)"
   fi
 
-  # Dolt is optional — bd runs in JSONL-only mode (no-db: true) by default
+  # Dolt is needed for beads server mode (unique port per project)
   if command -v dolt &>/dev/null; then
-    pass "dolt (optional): $(dolt version 2>&1 | head -1)"
+    pass "dolt: $(dolt version 2>&1 | head -1)"
+  else
+    warn "dolt not found — beads will run in direct mode (no server)"
+    warn "Install dolt: brew install dolt (or see https://docs.dolthub.com/introduction/installation)"
   fi
 
   if [[ "$ok" == false ]]; then
@@ -650,7 +662,7 @@ phase_1() {
   # Step 4: Configure dolt server with the allocated port
   if [[ -f ".beads/dolt/config.yaml" ]]; then
     # Update port in dolt config.yaml
-    sed -i '' "s/port: [0-9]*/port: $dolt_port/" ".beads/dolt/config.yaml"
+    sedi "s/port: [0-9]*/port: $dolt_port/" ".beads/dolt/config.yaml"
     pass "Dolt config.yaml updated with port $dolt_port"
   fi
   # Write port file (bd reads this to find the server)
@@ -721,7 +733,7 @@ EOF
   info "Waiting for ChromaDB health..."
   for i in $(seq 1 20); do
     if curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
-      pass "ChromaDB healthy on :8080"
+      pass "ChromaDB healthy on :8000"
       return 0
     fi
     sleep 3
@@ -755,20 +767,19 @@ phase_3() {
     return 0
   fi
 
-  # Check if already installed
+  # Check if already installed (only in HOME — never install inside project repo)
   local AM_DIR=""
-  if [[ -d "$PWD/mcp_agent_mail" ]]; then
-    AM_DIR="$PWD/mcp_agent_mail"
-  elif [[ -d "$HOME/mcp_agent_mail" ]]; then
+  if [[ -d "$HOME/mcp_agent_mail" ]]; then
     AM_DIR="$HOME/mcp_agent_mail"
   fi
 
   if [[ -z "$AM_DIR" ]]; then
-    info "Installing Agent Mail (this may take a minute)..."
+    info "Installing Agent Mail in ~/mcp_agent_mail (not inside project repo)..."
     # --skip-beads: we use bd (Go), NOT br (Rust). Without this flag,
     # the install script adds 'alias bd=br' to .zshrc which masks bd (Go).
+    # cd ~ ensures install goes to HOME, not project directory.
     # Run install in background subshell — NEVER let it block
-    (curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
+    (cd ~ && curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
       | bash -s -- --yes --skip-beads > /tmp/agent-mail-install.log 2>&1) &
     local install_pid=$!
 
@@ -791,10 +802,8 @@ phase_3() {
       wait "$install_pid" 2>/dev/null
     fi
 
-    # Re-check if installed
-    if [[ -d "$PWD/mcp_agent_mail" ]]; then
-      AM_DIR="$PWD/mcp_agent_mail"
-    elif [[ -d "$HOME/mcp_agent_mail" ]]; then
+    # Re-check if installed (HOME only)
+    if [[ -d "$HOME/mcp_agent_mail" ]]; then
       AM_DIR="$HOME/mcp_agent_mail"
     fi
   fi
@@ -815,7 +824,7 @@ phase_3() {
   else
     warn "Agent Mail not responding"
     warn "Check log: cat /tmp/agent-mail-install.log"
-    warn "Manual start: cd mcp_agent_mail && bash scripts/run_server_with_token.sh &"
+    warn "Manual start: cd ~/mcp_agent_mail && bash scripts/run_server_with_token.sh &"
     return 1
   fi
 
@@ -823,7 +832,7 @@ phase_3() {
   # This masks bd (Go) which has memory features we need. Remove/comment the alias if found.
   local rc_file="$HOME/.zshrc"
   if [[ -f "$rc_file" ]] && grep -q "^alias bd='br'" "$rc_file"; then
-    sed -i '' "s/^alias bd='br'/# alias bd='br'  # DISABLED by bootstrap.sh — using bd (Go)/" "$rc_file"
+    sedi "s/^alias bd='br'/# alias bd='br'  # DISABLED by bootstrap.sh — using bd (Go)/" "$rc_file"
     warn "Removed 'alias bd=br' from .zshrc (Agent Mail added it, but we use bd Go)"
   fi
 }

@@ -21,7 +21,7 @@
 
 ## 3. Self-Improvement Loop
 
-- After ANY correction from the user: update tasks/lessons.md with the pattern
+- After ANY correction from the user: `bd remember "lesson:<category>:<insight>" --key lesson-<cat>-<nnn>`
 - Write rules for yourself that prevent the same mistake
 - Ruthlessly iterate on these lessons until mistake rate drops
 - Review lessons at session start for relevant project
@@ -51,12 +51,12 @@
 
 ## Task Management
 
-1. **Plan First**: Write plan to tasks/todo.md with checkable items
-2. **Verify Plan**: Check in before starting implementation
-3. **Track Progress**: Mark items complete as you go
+1. **Plan First**: Decompose into beads hierarchy (`bd create --type=epic/feature/task`)
+2. **Verify Plan**: `bd dep tree <epic>` — review before starting
+3. **Track Progress**: `bd update <id> --status=in_progress` → `bd close <id>`
 4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: Add review section to tasks/todo.md
-6. **Capture Lessons**: Update tasks/lessons.md after corrections
+5. **Document Results**: `bd remember` key insights for future sessions
+6. **Capture Lessons**: `bd remember` after corrections (see [setup/setup.md](setup/setup.md) Section 7)
 
 ---
 

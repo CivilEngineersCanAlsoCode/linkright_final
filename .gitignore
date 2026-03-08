@@ -38,6 +38,7 @@ create_issues.sh
 
 # Autonomous dev kit (system-level, not project)
 .autonomous-dev/
+mcp_agent_mail/
 
 # Build artifacts
 dist/

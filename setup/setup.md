@@ -483,18 +483,21 @@ Tell user: `"Bootstrap complete. Detected: <stack>. Stored <N> memories. ChromaD
 
 ## 16. Component Setup: Beads
 
+> **IMPORTANT**: Use `bd` (Go, v0.59.0+) — NOT `br` (beads_rust). Only bd has memory features (remember/memories/prime).
+> If `bd version` shows "br version", you have the wrong tool. See Agent Mail section for alias fix.
+
 ### Install
 
 ```bash
 # Check
 which bd && bd info
 
-# Install (pick one)
+# Install (prefer npm — latest version with memory features)
+npm install -g @beads/bd              # npm global (RECOMMENDED)
 brew install beads                    # macOS Homebrew
-npm install -g @beads/bd              # npm global
 curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
 
-# Verify
+# Verify — must show "bd version", NOT "br version"
 bd version
 ```
 
@@ -502,7 +505,23 @@ bd version
 
 ```bash
 bd init                               # Creates .beads/
+bd dolt set database "$(basename $(pwd))"  # Fix database name (init uses wrong default)
 bd info                               # Expect "Issue Count: 0"
+```
+
+### Multi-Project Port Allocation
+
+When running multiple projects with dolt servers (e.g., sync + Antigravity), each project needs a unique port. The bootstrap script auto-allocates ports in range **13400-13599** based on project name hash.
+
+```bash
+# See your project's port:
+grep "port:" .beads/dolt/config.yaml
+
+# See all active dolt ports:
+lsof -i -P | grep dolt | grep LISTEN
+
+# Manually set port if needed:
+bd dolt set port <port>
 ```
 
 ### Fix Issues
@@ -543,38 +562,29 @@ Requirements:
   # NOT:
   #   - chroma-data:/chroma/chroma                      # WRONG (data lost if container removed)
   ```
-- MCP gateway port: 8080
-- ChromaDB internal port: 8000
+- ChromaDB port: 8000
 - `restart: unless-stopped`
-- `MCP_AUTH_TOKEN` from `.env`
 
 ### Environment File
 
 Location: `~/.autonomous-dev/chromadb/.env`
 
 ```
-MCP_AUTH_TOKEN=<generated-token>
 CHROMA_DATA_PATH=./data
-PORT=8080
-```
-
-### Token Generation
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 ```
 
 ### Start & Verify
 
 ```bash
 cd ~/.autonomous-dev/chromadb && docker compose up -d
-curl http://localhost:8080/health     # Expect 200 OK
+curl http://localhost:8000/api/v2/heartbeat     # Expect JSON with heartbeat
 ```
 
 ### Connect to Claude Code
 
 ```bash
-claude mcp add --transport http chromadb "http://localhost:8080/mcp?apiKey=<TOKEN>"
+# Use uvx native MCP client (connects to ChromaDB on port 8000)
+claude mcp add chromadb -- uvx chroma-mcp --client-type http --host localhost --port 8000
 claude mcp list                       # Expect "chromadb" in output
 ```
 
@@ -602,17 +612,19 @@ Python 3.11+, uv: `python3 --version && which uv`
 ### Install
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" | bash -s -- --yes
+# IMPORTANT: Run from HOME directory, and use --skip-beads to avoid installing br (beads_rust)
+cd ~ && curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" | bash -s -- --yes --skip-beads
 ```
 
-Creates: Python venv, bearer token, shell alias `am`, beads integration.
+Creates: Python venv, bearer token, shell alias `am` in ~/mcp_agent_mail.
+> **WARNING**: Without `--skip-beads`, the install script adds `alias bd='br'` to .zshrc which masks bd (Go). Always use `--skip-beads`.
 
 ### Start & Verify
 
 ```bash
 am                                    # Shell alias
 # OR: uv run python -m mcp_agent_mail.http --host 127.0.0.1 --port 8765
-curl http://localhost:8765/health     # Expect 200
+curl http://localhost:8765/health/liveness     # Expect {"status":"alive"}
 ```
 
 ### Connect to Claude Code
@@ -675,8 +687,8 @@ Each phase depends on the previous. If setup fails mid-way, resume from first op
 |-------|---------------|------------|---------------------------------|----------------------------------|
 | 0     | Prerequisites | —          | Check git, docker, node, python 3.11+, uv | All commands return versions |
 | 1     | Beads         | Phase 0    | Install + `bd init`             | `bd info` → no error             |
-| 2     | ChromaDB      | Phase 0    | Docker compose + bind mount     | `curl localhost:8080/health` → 200 |
-| 3     | Agent Mail    | Phase 0    | Install script + MCP connect    | `curl localhost:8765/health` → 200 |
+| 2     | ChromaDB      | Phase 0    | Docker compose + bind mount     | `curl localhost:8000/api/v2/heartbeat` → JSON |
+| 3     | Agent Mail    | Phase 0    | Install script + MCP connect    | `curl localhost:8765/health/liveness` → 200 |
 | 4     | Permissions   | Phase 1    | Update settings.json + hooks    | `claude mcp list` → shows servers |
 | 5     | Seed Knowledge| Phases 1-4 | Bootstrap Procedure (Section 15)| `bd memories project` → has output |
 | 6     | Verify All    | Phases 1-5 | Run all 7 health checks         | All pass                          |
@@ -700,8 +712,8 @@ bd create --type=task --parent=<epic> --title="Verify full system" -p 0
 |----|------------------------------------|-----------------------------------|-------------|
 | 1  | Beads running                      | `bd info`                         | No error    |
 | 2  | Memories populated                 | `bd memories project`             | Has output  |
-| 3  | ChromaDB healthy                   | `curl http://localhost:8080/health` | 200       |
-| 4  | Agent Mail healthy                 | `curl http://localhost:8765/health` | 200       |
+| 3  | ChromaDB healthy                   | `curl http://localhost:8000/api/v2/heartbeat` | JSON    |
+| 4  | Agent Mail healthy                 | `curl http://localhost:8765/health/liveness` | 200       |
 | 5  | MCP servers connected              | `claude mcp list`                 | Shows both  |
 | 6  | ChromaDB collection works          | `chroma_query_documents` test     | Returns results |
 | 7  | Beads context loads                | `bd prime`                        | Outputs context |
