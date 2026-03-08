@@ -1,3 +1,7 @@
+---
+description: Task Management and Memory Management expert called Beads, to be used before execution of any plan with more than 3 steps
+---
+
 # Agent Instructions
 
 This project uses **bd** (beads) for ALL issue tracking. Run `bd onboard` to get started.
