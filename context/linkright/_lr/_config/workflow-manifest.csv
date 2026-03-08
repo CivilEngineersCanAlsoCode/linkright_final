@@ -1,29 +1,23 @@
 id,name,module,path,status,created_date,description
-wf-001,brainstorming,core,_lr/core/workflows/brainstorming,active,2026-03-08,Brainstorming and ideation workflow
-wf-002,context-gen,core,_lr/core/workflows/context-gen,active,2026-03-08,Context generation workflow
-wf-003,create-story,core,_lr/core/workflows/create-story,active,2026-03-08,User story creation workflow
-wf-004,dev-story,core,_lr/core/workflows/dev-story,active,2026-03-08,Developer story workflow
-wf-005,document-project,core,_lr/core/workflows/document-project,active,2026-03-08,Project documentation workflow
-wf-006,document-system,core,_lr/core/workflows/document-system,active,2026-03-08,System documentation workflow
-wf-007,lr-discuss,core,_lr/core/workflows/lr-discuss,active,2026-03-08,Linkright discussion workflow
-wf-008,party-mode,core,_lr/core/workflows/party-mode,active,2026-03-08,Multi-agent party mode workflow
-wf-009,setup-execution,core,_lr/core/workflows/setup-execution,active,2026-03-08,Setup and execution workflow
-wf-010,sprint-planning,core,_lr/core/workflows/sprint-planning,active,2026-03-08,Sprint planning workflow
-wf-011,sprint-status,core,_lr/core/workflows/sprint-status,active,2026-03-08,Sprint status reporting workflow
-wf-012,narrative-craft,cis,_lr/cis/workflows/narrative-craft,active,2026-03-08,Competitive narrative workflow
-wf-013,content-automation,flex,_lr/flex/workflows/content-automation,active,2026-03-08,Flexible content automation workflow
-wf-014,agent,lrb,_lr/lrb/workflows/agent,active,2026-03-08,Agent installation workflow
-wf-015,module,lrb,_lr/lrb/workflows/module,active,2026-03-08,Module setup workflow
-wf-016,qa,lrb,_lr/lrb/workflows/qa,active,2026-03-08,QA setup workflow
-wf-017,1-analysis,squick,_lr/squick/workflows/1-analysis,active,2026-03-08,Squick analysis phase
-wf-018,2-plan,squick,_lr/squick/workflows/2-plan,active,2026-03-08,Squick planning phase
-wf-019,3-solutioning,squick,_lr/squick/workflows/3-solutioning,active,2026-03-08,Squick solutioning phase
-wf-020,4-implementation,squick,_lr/squick/workflows/4-implementation,active,2026-03-08,Squick implementation phase
-wf-021,enterprise-ship,squick,_lr/squick/workflows/enterprise-ship,active,2026-03-08,Enterprise shipping workflow
-wf-022,application-track,sync,_lr/sync/workflows/application-track,active,2026-03-08,Application tracking workflow
-wf-023,jd-optimize,sync,_lr/sync/workflows/jd-optimize,active,2026-03-08,Job description optimization workflow
-wf-024,outbound-campaign,sync,_lr/sync/workflows/outbound-campaign,active,2026-03-08,Outbound campaign workflow
-wf-025,portfolio-deploy,sync,_lr/sync/workflows/portfolio-deploy,active,2026-03-08,Portfolio deployment workflow
-wf-026,quick-optimize,sync,_lr/sync/workflows/quick-optimize,active,2026-03-08,Quick optimization workflow
-wf-027,signal-capture,sync,_lr/sync/workflows/signal-capture,active,2026-03-08,Signal capture workflow
-wf-028,resume-validation,tea,_lr/tea/workflows/resume-validation,active,2026-03-08,Resume validation workflow
+wf-021,1-analysis,squick,_lr/squick/workflows/1-analysis,active,2026-03-08,1-analysis workflow
+wf-020,2-plan,squick,_lr/squick/workflows/2-plan,active,2026-03-08,2-plan workflow
+wf-019,3-solutioning,squick,_lr/squick/workflows/3-solutioning,active,2026-03-08,3-solutioning workflow
+wf-022,4-implementation,squick,_lr/squick/workflows/4-implementation,active,2026-03-08,4-implementation workflow
+wf-016,application-track,sync,_lr/sync/workflows/application-track,active,2026-03-08,application-track workflow
+wf-008,brainstorming,core,_lr/core/workflows/brainstorming,active,2026-03-08,brainstorming workflow
+wf-017,content-automation,flex,_lr/flex/workflows/content-automation,active,2026-03-08,content-automation workflow
+wf-007,context-gen,core,_lr/core/workflows/context-gen,active,2026-03-08,context-gen workflow
+wf-005,create-story,core,_lr/core/workflows/create-story,active,2026-03-08,create-story workflow
+wf-002,dev-story,core,_lr/core/workflows/dev-story,active,2026-03-08,dev-story workflow
+wf-009,document-project,core,_lr/core/workflows/document-project,active,2026-03-08,document-project workflow
+wf-003,document-system,core,_lr/core/workflows/document-system,active,2026-03-08,document-system workflow
+wf-011,jd-optimize,sync,_lr/sync/workflows/jd-optimize,active,2026-03-08,jd-optimize workflow
+wf-018,narrative-craft,cis,_lr/cis/workflows/narrative-craft,active,2026-03-08,narrative-craft workflow
+wf-012,outbound-campaign,sync,_lr/sync/workflows/outbound-campaign,active,2026-03-08,outbound-campaign workflow
+wf-004,party-mode,core,_lr/core/workflows/party-mode,active,2026-03-08,party-mode workflow
+wf-015,portfolio-deploy,sync,_lr/sync/workflows/portfolio-deploy,active,2026-03-08,portfolio-deploy workflow
+wf-014,quick-optimize,sync,_lr/sync/workflows/quick-optimize,active,2026-03-08,quick-optimize workflow
+wf-010,resume-validation,tea,_lr/tea/workflows/resume-validation,active,2026-03-08,resume-validation workflow
+wf-013,signal-capture,sync,_lr/sync/workflows/signal-capture,active,2026-03-08,signal-capture workflow
+wf-006,sprint-planning,core,_lr/core/workflows/sprint-planning,active,2026-03-08,sprint-planning workflow
+wf-001,sprint-status,core,_lr/core/workflows/sprint-status,active,2026-03-08,sprint-status workflow

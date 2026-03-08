@@ -1,27 +1,51 @@
-# Content Automation Instructions
+# Content Automation Workflow Instructions
 
 ## Overview
+This workflow automates the creation, refinement, and distribution of professional content for social media, blogs, and career positioning.
 
-Automate LinkedIn and outreach content generation based on career signals and target personas.
+## Execution Flow
 
-## Execution Protocols
+### Step 1: Content Discovery
+- Extract signal blocks from user's professional history
+- Identify high-impact achievements and transitions
+- Map to audience segments (recruiters, peers, employers)
 
-### 1. Ingest Baseline
+### Step 2: Content Generation
+- Draft posts in "build-in-public" format
+- Create 3 variations per topic
+- Generate hashtag recommendations
+- Optimize for platform (LinkedIn, Twitter, Medium)
 
-- Load `career_signals.yaml`.
-- Load latest `ResumeVersion`.
+### Step 3: Narrative Crafting
+- Ensure authenticity and brand voice
+- Add personal perspective and context
+- Include call-to-action elements
+- Verify tone alignment with audience
 
-### 2. Determine Platform Strategy
+### Step 4: Distribution Planning
+- Schedule posts for optimal engagement times
+- Coordinate cross-platform presence
+- Track engagement metrics
+- Iterate based on feedback
 
-- If LinkedIn: Optimize for hook and engagement.
-- If Outreach: Optimize for conciseness and clear call-to-action.
+### Step 5: Feedback & Learning
+- Collect engagement data
+- Synthesize learnings
+- Update signal library
+- Recommend next topics
 
-### 3. Generate Drafts
+## Output Artifacts
+- content-report.md (daily/weekly digest)
+- social-posts.json (scheduled posts)
+- metrics-dashboard.yaml (engagement tracking)
 
-- Draft 3 variations of outreach messages.
-- Draft 1 LinkedIn article or post derived from strong signal elements.
+## Agents Involved
+- Echo (Flex Publicist): Content strategy and ghostwriting
+- Lyric (Sync Publicist): Outreach messaging coordination
+- lr-tracker (Navi): Engagement metric tracking
 
-### 4. Review & Finalize
-
-- Ensure brand voice matches `branded-vocabulary.yaml`.
-- Export artifacts to `_lr-output/flex/`.
+## Success Criteria
+- ≥3 posts per week scheduled
+- ≥200 word minimum per post
+- ≥2 variations per topic
+- Brand voice consistency score ≥85%
