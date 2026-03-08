@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # bootstrap.sh — Full autonomous dev environment setup
-# Based on CLAUDE.md v8.0 Sections 16-20
+# Based on setup/setup.md v8.0 Sections 16-20
 #
 # Usage: ./setup/bootstrap.sh [--phase N] [--no-report]
 #   --phase N      Resume from phase N (0-6)
@@ -17,10 +17,8 @@
 #
 # Bug Reporting:
 #   When a phase fails, the script offers to create a GitHub Issue
-#   with full diagnostics. This helps the maintainer fix edge cases
-#   that only appear in specific environments. Over time, every unique
-#   failure gets reported, reviewed, and fixed — making the setup
-#   more robust for everyone.
+#   with full diagnostics. If beads is working, also creates a beads
+#   bug issue for local tracking.
 
 # Don't use set -e — phases handle their own errors gracefully
 set -uo pipefail
@@ -33,12 +31,25 @@ REPO_NAME="linkright_final"
 REPO_URL="https://github.com/$REPO_OWNER/$REPO_NAME"
 CHROMADB_DIR="$HOME/.autonomous-dev/chromadb"
 AGENT_MAIL_HEALTH="http://localhost:8765/health/liveness"
-CHROMADB_HEALTH="http://localhost:8080/health"
+CHROMADB_HEALTH="http://localhost:8000/api/v2/heartbeat"  # Direct ChromaDB port
 PHASE_TIMEOUT=120  # seconds per phase max
 START_PHASE=0
 BUG_REPORT_ENABLED=true
 PHASE_LOG="/tmp/bootstrap-phase-$$.log"
 FULL_LOG="/tmp/bootstrap-full-$$.log"
+
+# Pinned working versions — update these after testing new versions
+BD_MIN_VERSION="0.59.0"       # bd (Go) — minimum version with memory features
+CHROMADB_IMAGE="chromadb/chroma:latest"  # ChromaDB Docker image
+
+# Dolt server port range: 13400-13599 (200 ports for different projects)
+DOLT_PORT_BASE=13400
+DOLT_PORT_RANGE=200
+
+# Capability flags — set during Phase 0, used by later phases
+DOCKER_AVAILABLE=false
+UV_AVAILABLE=false
+GH_AVAILABLE=false
 
 # ─────────────────────────────────────────────
 # Colors & helpers
@@ -53,6 +64,64 @@ pass() { echo -e "${GREEN}✓ $1${NC}"; }
 fail() { echo -e "${RED}✗ $1${NC}"; }
 warn() { echo -e "${YELLOW}⚠ $1${NC}"; }
 info() { echo -e "  $1"; }
+
+# Portable sed in-place edit (macOS uses -i '', Linux uses -i)
+sedi() {
+  if [[ "$(uname)" == "Darwin" ]]; then
+    sed -i '' "$@"
+  else
+    sed -i "$@"
+  fi
+}
+
+# ─────────────────────────────────────────────
+# Dolt port allocation (deterministic per project)
+# ─────────────────────────────────────────────
+# Each project gets a unique port based on its directory name hash.
+# Range: DOLT_PORT_BASE to DOLT_PORT_BASE+DOLT_PORT_RANGE (13400-13599)
+# This prevents port conflicts when multiple projects run dolt servers.
+#
+# Port mapping (deterministic — same project always gets same port):
+#   project_name → hash → port in [13400, 13599]
+#
+# To see your project's port: grep "port:" .beads/dolt/config.yaml
+# To see all active dolt ports: lsof -i -P | grep dolt | grep LISTEN
+
+allocate_dolt_port() {
+  local project_name="$1"
+  # Generate deterministic port from project name using cksum (portable)
+  local hash_val
+  hash_val=$(echo -n "$project_name" | cksum | awk '{print $1}')
+  local port=$(( DOLT_PORT_BASE + (hash_val % DOLT_PORT_RANGE) ))
+
+  # Check if port is in use by ANOTHER process (not our own dolt)
+  if lsof -i :"$port" &>/dev/null; then
+    local port_user
+    port_user=$(lsof -i :"$port" -t 2>/dev/null | head -1)
+    local port_cmd
+    port_cmd=$(ps -p "$port_user" -o comm= 2>/dev/null || echo "unknown")
+
+    if [[ "$port_cmd" == *"dolt"* ]]; then
+      # Our dolt is already running on this port — that's fine
+      info "Dolt already running on port $port (PID $port_user)"
+    else
+      # Conflict! Try next ports until we find a free one
+      warn "Port $port in use by $port_cmd — scanning for free port..."
+      local offset=1
+      while [[ $offset -lt $DOLT_PORT_RANGE ]]; do
+        local try_port=$(( DOLT_PORT_BASE + ((hash_val + offset) % DOLT_PORT_RANGE) ))
+        if ! lsof -i :"$try_port" &>/dev/null; then
+          port=$try_port
+          info "Found free port: $port"
+          break
+        fi
+        offset=$((offset + 1))
+      done
+    fi
+  fi
+
+  echo "$port"
+}
 
 # ─────────────────────────────────────────────
 # Parse args
@@ -104,7 +173,27 @@ make_fingerprint() {
 }
 
 # ─────────────────────────────────────────────
-# Bug reporter
+# Beads bug reporter (local tracking)
+# ─────────────────────────────────────────────
+report_beads_bug() {
+  local phase_num="$1"
+  local phase_name="$2"
+  local error_summary="$3"
+
+  # Only if bd is working
+  if ! bd info &>/dev/null 2>&1; then
+    return 0
+  fi
+
+  # Create bug in beads for local tracking
+  bd create --type=bug \
+    --title="[setup] Phase $phase_num ($phase_name) failed: $error_summary" \
+    --description="Auto-detected during bootstrap.sh run. Error: $error_summary" \
+    -p 1 --label auto-detected 2>/dev/null || true
+}
+
+# ─────────────────────────────────────────────
+# Bug reporter (GitHub + beads)
 # ─────────────────────────────────────────────
 report_bug() {
   local phase_num="$1"
@@ -115,6 +204,14 @@ report_bug() {
 
   local fingerprint
   fingerprint=$(make_fingerprint "$phase_num" "$phase_output")
+
+  # Extract first error line for beads bug title
+  local error_summary
+  error_summary=$(echo "$phase_output" | grep -iE '✗|error|fail' | head -1 | cut -c1-80)
+  [[ -z "$error_summary" ]] && error_summary="exit code $exit_code"
+
+  # Always try beads bug (silent, local tracking)
+  report_beads_bug "$phase_num" "$phase_name" "$error_summary"
 
   if [[ "$BUG_REPORT_ENABLED" != true ]]; then
     info "Bug reporting disabled (--no-report). Fingerprint: $fingerprint"
@@ -254,6 +351,9 @@ run_phase() {
   local exit_code=0
 
   # Start phase in background for timeout control
+  # NOTE: Exit code from process substitution (> >(...)) can be unreliable in bash.
+  # This is acceptable because run_phase always returns 0 (continues to next phase).
+  # The exit code is only used for bug reporting, not flow control.
   "phase_$phase_num" > >(while IFS= read -r line; do echo "$line"; echo "$line" >> "$PHASE_LOG"; echo "$line" >> "$FULL_LOG"; done) 2>&1 &
   local pid=$!
 
@@ -288,6 +388,110 @@ run_phase() {
 }
 
 # ─────────────────────────────────────────────
+# Beads recovery: handles stale .beads, circuit
+# breaker, orphan dolt servers, and corrupt state
+# ─────────────────────────────────────────────
+kill_orphan_dolt_servers() {
+  # Kill any dolt sql-server processes in this repo's .beads/dolt directory
+  local beads_dolt_dir
+  beads_dolt_dir="$(pwd)/.beads/dolt"
+  # Find dolt processes serving this specific data dir
+  local pids
+  pids=$(ps aux 2>/dev/null | grep "[d]olt sql-server" | grep "$beads_dolt_dir" | awk '{print $2}' || true)
+  if [[ -n "$pids" ]]; then
+    info "Killing orphan dolt server(s): $pids"
+    echo "$pids" | xargs kill 2>/dev/null || true
+    sleep 2
+    # Force kill if still alive
+    echo "$pids" | xargs kill -9 2>/dev/null || true
+    sleep 1
+  fi
+
+  # Also check by PID file
+  if [[ -f ".beads/dolt-server.pid" ]]; then
+    local pid_from_file
+    pid_from_file=$(cat ".beads/dolt-server.pid" 2>/dev/null || echo "")
+    if [[ -n "$pid_from_file" ]] && kill -0 "$pid_from_file" 2>/dev/null; then
+      info "Killing dolt server from PID file: $pid_from_file"
+      kill "$pid_from_file" 2>/dev/null || true
+      sleep 2
+      kill -9 "$pid_from_file" 2>/dev/null || true
+    fi
+  fi
+}
+
+wait_circuit_breaker_cooldown() {
+  info "Waiting 7s for circuit breaker cooldown..."
+  sleep 7
+}
+
+verify_beads_health() {
+  # Returns 0 if bd info works, 1 otherwise
+  bd info &>/dev/null 2>&1
+}
+
+recover_beads() {
+  # Full recovery sequence for broken .beads state
+  # Called when .beads/ exists but bd info fails
+  local attempt=0
+  local max_attempts=2
+
+  while [[ $attempt -lt $max_attempts ]]; do
+    attempt=$((attempt + 1))
+    info "Recovery attempt $attempt/$max_attempts..."
+
+    # Step 1: Stop any dolt server managed by bd
+    if command -v bd &>/dev/null; then
+      bd dolt stop 2>/dev/null || true
+    fi
+
+    # Step 2: Kill any orphan dolt processes for this repo
+    kill_orphan_dolt_servers
+
+    # Step 3: Wait for circuit breaker to reset
+    wait_circuit_breaker_cooldown
+
+    # Step 4: Try bd info again (maybe server was the only issue)
+    if verify_beads_health; then
+      pass "Recovery successful (attempt $attempt) — dolt restart fixed it"
+      return 0
+    fi
+
+    # Step 5: If still broken, nuke .beads/ and re-init
+    info "bd info still failing — removing corrupt .beads/ for clean re-init"
+    rm -rf .beads 2>/dev/null
+
+    # Step 6: Wait again (circuit breaker may still be tripped in bd process)
+    wait_circuit_breaker_cooldown
+
+    # Step 7: Fresh init
+    if bd init 2>&1; then
+      # Step 7.5: Fix dolt database name (init creates prefix-named db, default expects "beads")
+      local prefix
+      prefix=$(basename "$(pwd)")
+      bd dolt set database "$prefix" 2>/dev/null || true
+
+      # Step 8: Verify the fresh init actually works
+      sleep 2  # give dolt server time to start
+      if verify_beads_health; then
+        pass "Recovery successful (attempt $attempt) — clean re-init worked"
+        return 0
+      fi
+    fi
+
+    warn "Attempt $attempt failed"
+  done
+
+  fail "Beads recovery failed after $max_attempts attempts"
+  info "Diagnostics:"
+  info "  bd version: $(bd version 2>&1 || echo 'not found')"
+  info "  .beads/ exists: $(test -d .beads && echo 'yes' || echo 'no')"
+  info "  dolt processes: $(ps aux 2>/dev/null | grep -c '[d]olt sql-server' || echo '0')"
+  info "  bd info output: $(bd info 2>&1 | head -3)"
+  return 1
+}
+
+# ─────────────────────────────────────────────
 # Phase 0: Prerequisites
 # ─────────────────────────────────────────────
 phase_0() {
@@ -295,7 +499,8 @@ phase_0() {
   echo "═══ Phase 0: Prerequisites ═══"
   local ok=true
 
-  for cmd in git docker node python3; do
+  # Hard requirements: git, node, python3
+  for cmd in git node python3; do
     if command -v "$cmd" &>/dev/null; then
       pass "$cmd: $("$cmd" --version 2>&1 | head -1)"
     else
@@ -304,8 +509,24 @@ phase_0() {
     fi
   done
 
+  # Soft requirement: Docker (needed for ChromaDB only)
+  if command -v docker &>/dev/null; then
+    pass "docker: $(docker --version 2>&1 | head -1)"
+    if docker ps &>/dev/null; then
+      pass "Docker daemon running"
+      DOCKER_AVAILABLE=true
+    else
+      warn "Docker installed but daemon not running — ChromaDB will be skipped"
+      warn "Start Docker Desktop and re-run with --phase 2 to set up ChromaDB"
+    fi
+  else
+    warn "Docker not installed — ChromaDB (Phase 2) will be skipped"
+    warn "Install Docker Desktop for ChromaDB support"
+  fi
+
   # Check Python version >= 3.11
   if command -v python3 &>/dev/null; then
+    local py_ver
     py_ver=$(python3 -c 'import sys; print(f"{sys.version_info.minor}")')
     if [[ "$py_ver" -ge 11 ]]; then
       pass "Python 3.$py_ver (>= 3.11)"
@@ -315,26 +536,36 @@ phase_0() {
     fi
   fi
 
-  # Check uv
+  # Soft requirement: uv (needed for Agent Mail only)
   if command -v uv &>/dev/null; then
     pass "uv: $(uv --version 2>&1)"
+    UV_AVAILABLE=true
   else
     warn "uv not found (needed for Agent Mail only)"
   fi
 
-  # Check Docker running
-  if docker ps &>/dev/null; then
-    pass "Docker daemon running"
+  # Soft requirement: gh CLI (needed for bug reporting only)
+  if command -v gh &>/dev/null; then
+    pass "gh CLI: $(gh --version 2>&1 | head -1)"
+    GH_AVAILABLE=true
   else
-    fail "Docker not running — start Docker Desktop first"
-    ok=false
+    warn "gh CLI not found (used for bug reporting only)"
+  fi
+
+  # Dolt is needed for beads server mode (unique port per project)
+  if command -v dolt &>/dev/null; then
+    pass "dolt: $(dolt version 2>&1 | head -1)"
+  else
+    warn "dolt not found — beads will run in direct mode (no server)"
+    warn "Install dolt: brew install dolt (or see https://docs.dolthub.com/introduction/installation)"
   fi
 
   if [[ "$ok" == false ]]; then
-    fail "Prerequisites incomplete. Fix above issues and re-run."
+    fail "Hard prerequisites incomplete (git, node, python3 >= 3.11). Fix above issues and re-run."
     return 1
   fi
-  pass "All prerequisites met"
+  pass "Hard prerequisites met"
+  [[ "$DOCKER_AVAILABLE" == false ]] && info "Note: Docker is optional — only ChromaDB requires it"
 }
 
 # ─────────────────────────────────────────────
@@ -344,30 +575,110 @@ phase_1() {
   echo ""
   echo "═══ Phase 1: Beads ═══"
 
+  # Step 1: Ensure bd (Go) is installed — NOT br (Rust)
   if command -v bd &>/dev/null; then
-    pass "bd already installed: $(bd version 2>&1 || echo 'installed')"
+    local bd_ver
+    bd_ver=$(bd version 2>&1 || echo "unknown")
+    if echo "$bd_ver" | grep -q "br version"; then
+      warn "bd is aliased to br (beads_rust) — this lacks memory features!"
+      warn "Remove 'alias bd=br' from ~/.zshrc and install bd (Go):"
+      warn "  npm install -g @beads/bd"
+      return 1
+    fi
+    pass "bd installed: $bd_ver"
   else
-    info "Installing beads..."
-    if command -v brew &>/dev/null; then
-      brew install beads
-    elif command -v npm &>/dev/null; then
+    info "Installing beads (bd Go)..."
+    # Prefer npm — gives latest version (v0.59.0+) with memory features
+    # IMPORTANT: Do NOT install beads_rust (br) — it lacks remember/memories/prime
+    if command -v npm &>/dev/null; then
       npm install -g @beads/bd
+    elif command -v brew &>/dev/null; then
+      brew install beads
     else
       curl -fsSL https://raw.githubusercontent.com/steveyegge/beads/main/scripts/install.sh | bash
+    fi
+
+    if ! command -v bd &>/dev/null; then
+      fail "beads installation failed — bd command not found after install"
+      return 1
     fi
     pass "beads installed"
   fi
 
-  # Init if not already
+  # Step 2: Init or verify existing .beads/
   if [[ -d ".beads" ]]; then
-    pass ".beads/ already exists"
+    info ".beads/ directory exists — verifying health..."
+
+    if verify_beads_health; then
+      pass "Existing .beads/ is healthy"
+    else
+      # .beads/ exists but is broken — this is the exact scenario that hit us
+      warn ".beads/ exists but bd info FAILED — starting recovery"
+      local bd_error
+      bd_error=$(bd info 2>&1 | head -3)
+      info "Error was: $bd_error"
+
+      if recover_beads; then
+        pass "Beads recovered successfully"
+      else
+        fail "Beads recovery failed — cannot proceed"
+        return 1
+      fi
+    fi
   else
-    bd init
-    pass "bd init complete"
+    info "No .beads/ found — running bd init..."
+    if bd init 2>&1; then
+      # Verify init actually produced a working state
+      sleep 2  # give dolt server time to start
+      if verify_beads_health; then
+        pass "bd init complete and verified"
+      else
+        warn "bd init completed but bd info fails — attempting recovery"
+        if recover_beads; then
+          pass "Beads recovered after init"
+        else
+          fail "bd init produced broken state and recovery failed"
+          return 1
+        fi
+      fi
+    else
+      fail "bd init failed"
+      info "Attempting recovery..."
+      if recover_beads; then
+        pass "Beads recovered after failed init"
+      else
+        fail "Cannot initialize beads — bd init and recovery both failed"
+        return 1
+      fi
+    fi
   fi
 
+  # Step 3: Allocate unique dolt server port for this project
+  # Each project gets a deterministic port based on its name, preventing conflicts
+  # when multiple projects (e.g. sync + Antigravity) run simultaneously.
+  local project_name
+  project_name=$(basename "$(pwd)")
+  local dolt_port
+  dolt_port=$(allocate_dolt_port "$project_name")
+  pass "Dolt port for '$project_name': $dolt_port"
+
+  # Step 4: Configure dolt server with the allocated port
+  if [[ -f ".beads/dolt/config.yaml" ]]; then
+    # Update port in dolt config.yaml
+    sedi "s/port: [0-9]*/port: $dolt_port/" ".beads/dolt/config.yaml"
+    pass "Dolt config.yaml updated with port $dolt_port"
+  fi
+  # Write port file (bd reads this to find the server)
+  echo "$dolt_port" > ".beads/dolt-server.port"
+  # Set port in metadata.json via bd command
+  bd dolt set port "$dolt_port" 2>/dev/null || true
+
+  # Step 5: Fix dolt database name (init creates prefix-named db, default expects "beads")
+  bd dolt set database "$project_name" 2>/dev/null || true
+
+  # Step 6: Final verification
   bd info
-  pass "Beads ready"
+  pass "Beads ready (dolt port: $dolt_port)"
 }
 
 # ─────────────────────────────────────────────
@@ -376,6 +687,19 @@ phase_1() {
 phase_2() {
   echo ""
   echo "═══ Phase 2: ChromaDB ═══"
+
+  # Gate: Docker must be available
+  if [[ "$DOCKER_AVAILABLE" != true ]]; then
+    # Re-check in case user started Docker between phases or --phase 2 was used
+    if command -v docker &>/dev/null && docker ps &>/dev/null; then
+      DOCKER_AVAILABLE=true
+      pass "Docker is now available"
+    else
+      warn "Docker not available — skipping ChromaDB setup"
+      info "Install/start Docker Desktop, then re-run with: ./setup/bootstrap.sh --phase 2"
+      return 0  # return 0 = not a failure, just skipped
+    fi
+  fi
 
   # Create directory
   mkdir -p "$CHROMADB_DIR/data"
@@ -392,29 +716,27 @@ phase_2() {
 
   # Generate .env if not exists
   if [[ ! -f "$CHROMADB_DIR/.env" ]]; then
-    TOKEN=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
     cat > "$CHROMADB_DIR/.env" <<EOF
-MCP_AUTH_TOKEN=$TOKEN
 CHROMA_DATA_PATH=./data
-PORT=8080
 EOF
-    pass ".env created with generated token"
-    info "Token: $TOKEN"
-    info "Save this token — you'll need it for Claude Code MCP config"
+    pass ".env created"
   else
     warn ".env already exists, skipping"
-    TOKEN=$(grep MCP_AUTH_TOKEN "$CHROMADB_DIR/.env" | cut -d= -f2)
   fi
 
   # Start ChromaDB
   info "Starting ChromaDB..."
-  (cd "$CHROMADB_DIR" && docker compose up -d 2>&1)
+  if ! (cd "$CHROMADB_DIR" && docker compose up -d 2>&1); then
+    fail "docker compose up failed"
+    info "Debug: cd $CHROMADB_DIR && docker compose logs"
+    return 1
+  fi
 
   # Wait for health
   info "Waiting for ChromaDB health..."
   for i in $(seq 1 20); do
     if curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
-      pass "ChromaDB healthy on :8080"
+      pass "ChromaDB healthy on :8000"
       return 0
     fi
     sleep 3
@@ -431,10 +753,15 @@ phase_3() {
   echo ""
   echo "═══ Phase 3: Agent Mail ═══"
 
-  if ! command -v uv &>/dev/null; then
-    warn "uv not installed — skipping Agent Mail"
-    warn "Install uv and re-run with --phase 3"
-    return 0
+  if [[ "$UV_AVAILABLE" != true ]]; then
+    # Re-check in case --phase 3 was used after installing uv
+    if command -v uv &>/dev/null; then
+      UV_AVAILABLE=true
+    else
+      warn "uv not installed — skipping Agent Mail"
+      warn "Install uv (curl -LsSf https://astral.sh/uv/install.sh | sh) and re-run with --phase 3"
+      return 0
+    fi
   fi
 
   # Check if already running (correct endpoint)
@@ -443,19 +770,20 @@ phase_3() {
     return 0
   fi
 
-  # Check if already installed
+  # Check if already installed (only in HOME — never install inside project repo)
   local AM_DIR=""
-  if [[ -d "$PWD/mcp_agent_mail" ]]; then
-    AM_DIR="$PWD/mcp_agent_mail"
-  elif [[ -d "$HOME/mcp_agent_mail" ]]; then
+  if [[ -d "$HOME/mcp_agent_mail" ]]; then
     AM_DIR="$HOME/mcp_agent_mail"
   fi
 
   if [[ -z "$AM_DIR" ]]; then
-    info "Installing Agent Mail (this may take a minute)..."
+    info "Installing Agent Mail in ~/mcp_agent_mail (not inside project repo)..."
+    # --skip-beads: we use bd (Go), NOT br (Rust). Without this flag,
+    # the install script adds 'alias bd=br' to .zshrc which masks bd (Go).
+    # cd ~ ensures install goes to HOME, not project directory.
     # Run install in background subshell — NEVER let it block
-    (curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
-      | bash -s -- --yes > /tmp/agent-mail-install.log 2>&1) &
+    (cd ~ && curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
+      | bash -s -- --yes --skip-beads > /tmp/agent-mail-install.log 2>&1) &
     local install_pid=$!
 
     info "Waiting for Agent Mail to come up..."
@@ -477,10 +805,8 @@ phase_3() {
       wait "$install_pid" 2>/dev/null
     fi
 
-    # Re-check if installed
-    if [[ -d "$PWD/mcp_agent_mail" ]]; then
-      AM_DIR="$PWD/mcp_agent_mail"
-    elif [[ -d "$HOME/mcp_agent_mail" ]]; then
+    # Re-check if installed (HOME only)
+    if [[ -d "$HOME/mcp_agent_mail" ]]; then
       AM_DIR="$HOME/mcp_agent_mail"
     fi
   fi
@@ -501,8 +827,16 @@ phase_3() {
   else
     warn "Agent Mail not responding"
     warn "Check log: cat /tmp/agent-mail-install.log"
-    warn "Manual start: cd mcp_agent_mail && bash scripts/run_server_with_token.sh &"
+    warn "Manual start: cd ~/mcp_agent_mail && bash scripts/run_server_with_token.sh &"
     return 1
+  fi
+
+  # DEFENSIVE: Agent Mail install may add 'alias bd=br' to .zshrc even with --skip-beads.
+  # This masks bd (Go) which has memory features we need. Remove/comment the alias if found.
+  local rc_file="$HOME/.zshrc"
+  if [[ -f "$rc_file" ]] && grep -q "^alias bd='br'" "$rc_file"; then
+    sedi "s/^alias bd='br'/# alias bd='br'  # DISABLED by bootstrap.sh — using bd (Go)/" "$rc_file"
+    warn "Removed 'alias bd=br' from .zshrc (Agent Mail added it, but we use bd Go)"
   fi
 }
 
@@ -528,10 +862,7 @@ phase_4() {
 
   # Show MCP server commands
   info "Configure MCP servers in Claude Code:"
-  if [[ -f "$CHROMADB_DIR/.env" ]]; then
-    TOKEN=$(grep MCP_AUTH_TOKEN "$CHROMADB_DIR/.env" | cut -d= -f2)
-    info "  claude mcp add --transport http chromadb \"http://localhost:8080/mcp?apiKey=$TOKEN\""
-  fi
+  info "  claude mcp add chromadb -- uvx chroma-mcp --client-type http --host localhost --port 8000"
   info "  claude mcp add --transport http agent-mail \"http://localhost:8765/mcp\" --header \"Authorization: Bearer <TOKEN>\""
 
   pass "Permissions phase complete"
@@ -544,7 +875,7 @@ phase_5() {
   echo ""
   echo "═══ Phase 5: Seed Knowledge ═══"
   warn "This phase runs INSIDE Claude Code (needs bd remember + ChromaDB)"
-  info "Start Claude Code and run the Bootstrap Procedure (CLAUDE.md Section 15)"
+  info "Start Claude Code and run the Bootstrap Procedure (setup/setup.md Section 15)"
   info "Or let the SessionStart hook + bd prime handle it automatically"
   pass "Phase 5 noted (manual step)"
 }
@@ -557,15 +888,19 @@ phase_6() {
   echo "═══ Phase 6: Verification ═══"
   local total=0
   local passed=0
+  local failed_checks=""
 
+  # Check 1: Beads running
   total=$((total + 1))
-  if bd info &>/dev/null; then
+  if verify_beads_health; then
     pass "1/7 Beads running"
     passed=$((passed + 1))
   else
     fail "1/7 Beads not working"
+    failed_checks="${failed_checks}  - Beads: bd info failed\n"
   fi
 
+  # Check 2: Memories populated
   total=$((total + 1))
   if bd memories project 2>/dev/null | grep -q .; then
     pass "2/7 Memories populated"
@@ -574,14 +909,19 @@ phase_6() {
     warn "2/7 No memories yet (run Phase 5 in Claude Code)"
   fi
 
+  # Check 3: ChromaDB healthy
   total=$((total + 1))
-  if curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
+  if [[ "$DOCKER_AVAILABLE" != true ]]; then
+    warn "3/7 ChromaDB skipped (Docker not available)"
+  elif curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
     pass "3/7 ChromaDB healthy"
     passed=$((passed + 1))
   else
     fail "3/7 ChromaDB not responding"
+    failed_checks="${failed_checks}  - ChromaDB: health check failed\n"
   fi
 
+  # Check 4: Agent Mail healthy
   total=$((total + 1))
   if curl -sf "$AGENT_MAIL_HEALTH" &>/dev/null; then
     pass "4/7 Agent Mail healthy"
@@ -590,6 +930,7 @@ phase_6() {
     warn "4/7 Agent Mail not responding (optional)"
   fi
 
+  # Check 5: MCP servers
   total=$((total + 1))
   if command -v claude &>/dev/null && claude mcp list 2>/dev/null | grep -q "chromadb"; then
     pass "5/7 MCP servers connected"
@@ -598,14 +939,18 @@ phase_6() {
     warn "5/7 MCP servers not verified (check manually: claude mcp list)"
   fi
 
+  # Check 6: ChromaDB API responds (list collections — deeper than heartbeat)
   total=$((total + 1))
-  if curl -sf "$CHROMADB_HEALTH" &>/dev/null; then
-    pass "6/7 ChromaDB accessible (collection check needs Claude Code)"
+  if [[ "$DOCKER_AVAILABLE" != true ]]; then
+    warn "6/7 ChromaDB skipped (Docker not available)"
+  elif curl -sf "http://localhost:8000/api/v2/collections" &>/dev/null; then
+    pass "6/7 ChromaDB API accessible (collections endpoint)"
     passed=$((passed + 1))
   else
-    warn "6/7 ChromaDB collection not tested"
+    warn "6/7 ChromaDB API not responding"
   fi
 
+  # Check 7: bd prime
   total=$((total + 1))
   if bd prime &>/dev/null; then
     pass "7/7 bd prime works"
@@ -617,7 +962,14 @@ phase_6() {
   echo ""
   echo "═══ Results: $passed/$total checks passed ═══"
 
-  if [[ $passed -lt 4 ]]; then
+  # Log failed checks summary
+  if [[ -n "$failed_checks" ]]; then
+    echo ""
+    echo -e "Failed checks:\n$failed_checks"
+  fi
+
+  # Only fail if hard requirements are broken (beads must work)
+  if ! verify_beads_health; then
     return 1
   fi
 }
@@ -636,12 +988,19 @@ trap cleanup EXIT
 # ─────────────────────────────────────────────
 echo "╔══════════════════════════════════════════╗"
 echo "║   Autonomous Dev Environment Bootstrap   ║"
-echo "║   CLAUDE.md v8.0 — Phases 0-6           ║"
+echo "║   setup/setup.md v8.0 — Phases 0-6       ║"
 echo "╚══════════════════════════════════════════╝"
 
-# Phase 0 runs directly (can exit 1 if prereqs missing)
+# Phase 0 runs directly (can exit 1 if hard prereqs missing)
 if [[ "$START_PHASE" -le 0 ]]; then
-  phase_0 || { fail "Prerequisites check failed. Cannot continue."; exit 1; }
+  phase_0 || { fail "Hard prerequisites check failed. Cannot continue."; exit 1; }
+fi
+
+# When resuming from a specific phase, re-detect capabilities
+if [[ "$START_PHASE" -gt 0 ]]; then
+  command -v docker &>/dev/null && docker ps &>/dev/null && DOCKER_AVAILABLE=true
+  command -v uv &>/dev/null && UV_AVAILABLE=true
+  command -v gh &>/dev/null && GH_AVAILABLE=true
 fi
 
 # Remaining phases use the runner (timeout + logging + bug reporting)
