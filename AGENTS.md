@@ -1,150 +1,131 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **bd** (beads) for ALL issue tracking. Run `bd onboard` to get started.
 
 ## Quick Reference
 
 ```bash
-bd ready              # Find available work
+bd ready              # Find available work (unblocked issues)
 bd show <id>          # View issue details
 bd update <id> --claim  # Claim work atomically
 bd close <id>         # Complete work
 bd sync               # Sync with git
+bd dolt pull          # Pull beads updates from remote
+bd prime              # Load session context (auto-runs on session start)
 ```
 
 ## Non-Interactive Shell Commands
 
-**ALWAYS use non-interactive flags** with file operations to avoid hanging on confirmation prompts.
+**ALWAYS use non-interactive flags** to avoid hanging on confirmation prompts.
 
-Shell commands like `cp`, `mv`, and `rm` may be aliased to include `-i` (interactive) mode on some systems, causing the agent to hang indefinitely waiting for y/n input.
-
-**Use these forms instead:**
 ```bash
-# Force overwrite without prompting
 cp -f source dest           # NOT: cp source dest
 mv -f source dest           # NOT: mv source dest
 rm -f file                  # NOT: rm file
-
-# For recursive operations
 rm -rf directory            # NOT: rm -r directory
-cp -rf source dest          # NOT: cp -r source dest
 ```
 
-**Other commands that may prompt:**
-- `scp` - use `-o BatchMode=yes` for non-interactive
-- `ssh` - use `-o BatchMode=yes` to fail instead of prompting
-- `apt-get` - use `-y` flag
-- `brew` - use `HOMEBREW_NO_AUTO_UPDATE=1` env var
+Other commands: `scp -o BatchMode=yes` | `ssh -o BatchMode=yes` | `apt-get -y` | `HOMEBREW_NO_AUTO_UPDATE=1 brew`
 
-<!-- BEGIN BEADS INTEGRATION -->
 ## Issue Tracking with bd (beads)
-
-**IMPORTANT**: This project uses **bd (beads)** for ALL issue tracking. Do NOT use markdown TODOs, task lists, or other tracking methods.
 
 ### Why bd?
 
-- Dependency-aware: Track blockers and relationships between issues
+- Dependency-aware: Track blockers and relationships
 - Version-controlled: Built on Dolt with cell-level merge
-- Agent-optimized: JSON output, ready work detection, discovered-from links
-- Prevents duplicate tracking systems and confusion
+- Agent-optimized: JSON output, ready work detection
+- Single source of truth: No markdown TODOs, no external trackers
 
-### Quick Start
+### Issue Hierarchy
 
-**Check for ready work:**
+When planning work, use this hierarchy (top-down):
 
-```bash
-bd ready --json
+```
+Epic (E)           → High-level goal (numbered: E1, E2...)
+  Feature (F)      → Capability within epic (F1.1, F1.2...)
+    User Story (US)→ User-facing requirement (US1, US2...)
+      Task (T)     → Atomic work item
+        Subtask    → Sub-step if task is complex
 ```
 
-**Create new issues:**
-
+Create with:
 ```bash
-bd create "Issue title" --description="Detailed context" -t bug|feature|task -p 0-4 --json
-bd create "Issue title" --description="What this issue is about" -p 1 --deps discovered-from:bd-123 --json
+bd create --type=epic --title="E1: <goal>" -p <0-4>
+bd create --type=feature --parent=<epic-id> --title="F1.1: <capability>" -p <0-4>
+bd create --type=task --parent=<feature-id> --title="US1: <requirement>" -p <0-4>
+bd create --type=task --parent=<story-id> --title="<atomic-work>" -p <0-4>
 ```
 
-**Claim and update:**
-
-```bash
-bd update <id> --claim --json
-bd update bd-42 --priority 1 --json
-```
-
-**Complete work:**
-
-```bash
-bd close bd-42 --reason "Completed" --json
-```
+Wire dependencies: `bd dep <blocker-id> --blocks <blocked-id>`
+View tree: `bd dep tree <epic-id>`
 
 ### Issue Types
 
-- `bug` - Something broken
-- `feature` - New functionality
-- `task` - Work item (tests, docs, refactoring)
-- `epic` - Large feature with subtasks
-- `chore` - Maintenance (dependencies, tooling)
+| Type    | Use For                              |
+|---------|--------------------------------------|
+| epic    | Large feature with subtasks          |
+| feature | New functionality                    |
+| task    | Work item (tests, docs, refactoring) |
+| bug     | Something broken                     |
+| chore   | Maintenance (deps, tooling)          |
 
 ### Priorities
 
-- `0` - Critical (security, data loss, broken builds)
-- `1` - High (major features, important bugs)
-- `2` - Medium (default, nice-to-have)
-- `3` - Low (polish, optimization)
-- `4` - Backlog (future ideas)
+| Priority | Level    | Use When                             |
+|----------|----------|--------------------------------------|
+| 0        | Critical | Security, data loss, broken builds   |
+| 1        | High     | Major features, important bugs       |
+| 2        | Medium   | Default, nice-to-have                |
+| 3        | Low      | Polish, optimization                 |
+| 4        | Backlog  | Future ideas                         |
 
-### Workflow for AI Agents
+### Agent Workflow
 
-1. **Check ready work**: `bd ready` shows unblocked issues
-2. **Claim your task atomically**: `bd update <id> --claim`
-3. **Work on it**: Implement, test, document
-4. **Discover new work?** Create linked issue:
-   - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
-5. **Complete**: `bd close <id> --reason "Done"`
+1. **Find work**: `bd ready` → shows unblocked issues
+2. **Claim**: `bd update <id> --claim`
+3. **Work**: Implement, test, verify
+4. **Discover new work?** Create linked: `bd create "Found bug" -p 1 --deps discovered-from:<parent-id>`
+5. **Complete**: `bd close <id>`
+6. **Auto-commit**: Every 5th close → auto-commit checkpoint
 
 ### Auto-Sync
 
-bd automatically syncs with git:
-
+bd auto-syncs with git:
 - Exports to `.beads/issues.jsonl` after changes (5s debounce)
 - Imports from JSONL when newer (e.g., after `git pull`)
-- No manual export/import needed!
 
-### Important Rules
+### Rules
 
-- ✅ Use bd for ALL task tracking
-- ✅ Always use `--json` flag for programmatic use
-- ✅ Link discovered work with `discovered-from` dependencies
-- ✅ Check `bd ready` before asking "what should I work on?"
-- ❌ Do NOT create markdown TODO lists
-- ❌ Do NOT use external issue trackers
-- ❌ Do NOT duplicate tracking systems
+- Use bd for ALL task tracking
+- Use `--json` flag for programmatic use
+- Link discovered work with `discovered-from` dependencies
+- Check `bd ready` before asking "what should I work on?"
+- Do NOT create markdown TODO lists
+- Do NOT use external issue trackers
+- Do NOT use `bd edit` (opens $EDITOR, blocks agents)
 
-For more details, see README.md and docs/QUICKSTART.md.
+## Session Protocol
 
-## Landing the Plane (Session Completion)
+### Starting
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+```bash
+bd prime              # Auto-runs via hook, loads context
+bd dolt pull          # Pull latest beads
+bd ready              # Find available work
+```
 
-**MANDATORY WORKFLOW:**
+### Closing (MANDATORY)
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+1. File issues for remaining work
+2. Run quality gates (if code changed)
+3. Update issue status
+4. Push to remote:
    ```bash
    git pull --rebase
    bd sync
    git push
-   git status  # MUST show "up to date with origin"
+   git status          # MUST show "up to date with origin"
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. Verify all changes committed AND pushed
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-
-<!-- END BEADS INTEGRATION -->
+**CRITICAL**: Work is NOT complete until `git push` succeeds. NEVER stop before pushing.
