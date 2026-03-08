@@ -1,17 +1,16 @@
 ---
-description: Sync Claude session history and system health to session_history.md
+description: Claude terminal history ko ek kahani (story) ki tarah session_history.md mein record karna
 ---
 
-This workflow automates the monitoring of Claude's terminal activity and updates the chronological audit log.
+Ye workflow Claude ki terminal activity ko monitor karta hai aur use ek chronological story ki tarah Romanized Hindi mein update karta hai.
 
 // turbo-all
-1. Get the latest Claude history entries:
-   `tail -n 50 ~/.claude/history.jsonl`
+1. Get the full Claude terminal history:
+   `cat ~/.claude/history.jsonl`
 
-2. Run system health verification:
-   `./setup/verify.sh`
+2. Update the `session_history.md` file:
+   - Agent ko terminal history analyze karni hai.
+   - Har ek interaction ko third-person Romanized Hindi mein likhna hai (e.g., "User ne poocha...", "Claude ne file edit kari...").
+   - Isko ek story format mein table mein update karna hai.
 
-3. Update the `session_history.md` file with the latest state and findings.
-   (The agent should NOT copy the user request verbatim. Instead, provide a summarized 1-liner in third-person Romanized Hindi describing what the user wanted and what Claude was doing, e.g., "User ne branch switch karne ko bola aur Claude ne git state update kiya.")
-
-4. Report the latest status to the user in Romanized Hindi.
+3. Report the latest status to the user in Romanized Hindi.
