@@ -683,9 +683,11 @@ phase_3() {
 
   if [[ -z "$AM_DIR" ]]; then
     info "Installing Agent Mail (this may take a minute)..."
+    # --skip-beads: we use bd (Go), NOT br (Rust). Without this flag,
+    # the install script adds 'alias bd=br' to .zshrc which masks bd (Go).
     # Run install in background subshell — NEVER let it block
     (curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
-      | bash -s -- --yes > /tmp/agent-mail-install.log 2>&1) &
+      | bash -s -- --yes --skip-beads > /tmp/agent-mail-install.log 2>&1) &
     local install_pid=$!
 
     info "Waiting for Agent Mail to come up..."
@@ -733,6 +735,14 @@ phase_3() {
     warn "Check log: cat /tmp/agent-mail-install.log"
     warn "Manual start: cd mcp_agent_mail && bash scripts/run_server_with_token.sh &"
     return 1
+  fi
+
+  # DEFENSIVE: Agent Mail install may add 'alias bd=br' to .zshrc even with --skip-beads.
+  # This masks bd (Go) which has memory features we need. Remove/comment the alias if found.
+  local rc_file="$HOME/.zshrc"
+  if [[ -f "$rc_file" ]] && grep -q "^alias bd='br'" "$rc_file"; then
+    sed -i '' "s/^alias bd='br'/# alias bd='br'  # DISABLED by bootstrap.sh — using bd (Go)/" "$rc_file"
+    warn "Removed 'alias bd=br' from .zshrc (Agent Mail added it, but we use bd Go)"
   fi
 }
 
