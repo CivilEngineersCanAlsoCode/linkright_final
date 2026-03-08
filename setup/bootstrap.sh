@@ -109,8 +109,32 @@ allocate_dolt_port() {
     port_cmd=$(ps -p "$port_user" -o comm= 2>/dev/null || echo "unknown")
 
     if [[ "$port_cmd" == *"dolt"* ]]; then
-      # Our dolt is already running on this port — that's fine
-      info "Dolt already running on port $port (PID $port_user)"
+      # Dolt is on this port — but is it OUR project's dolt or another project's?
+      # Check if the dolt process's working directory matches our .beads/dolt
+      local dolt_cwd
+      dolt_cwd=$(lsof -p "$port_user" -Fn 2>/dev/null | grep "^n.*/.beads/dolt" | head -1 | sed 's/^n//' || echo "")
+      if [[ -z "$dolt_cwd" ]]; then
+        # Fallback: check via /proc or ps for cwd
+        dolt_cwd=$(ps -p "$port_user" -o command= 2>/dev/null || echo "")
+      fi
+
+      if echo "$dolt_cwd" | grep -q "$(pwd)/.beads"; then
+        # Same project — safe to reuse
+        info "Dolt already running on port $port for this project (PID $port_user)"
+      else
+        # DIFFERENT project's dolt on our port — collision! Must find another port.
+        warn "Port $port used by ANOTHER project's dolt (PID $port_user) — scanning for free port..."
+        local offset=1
+        while [[ $offset -lt $DOLT_PORT_RANGE ]]; do
+          local try_port=$(( DOLT_PORT_BASE + ((hash_val + offset) % DOLT_PORT_RANGE) ))
+          if ! lsof -i :"$try_port" &>/dev/null; then
+            port=$try_port
+            info "Found free port: $port"
+            break
+          fi
+          offset=$((offset + 1))
+        done
+      fi
     else
       # Conflict! Try next ports until we find a free one
       warn "Port $port in use by $port_cmd — scanning for free port..."
@@ -521,6 +545,14 @@ phase_preflight() {
   echo ""
   echo "═══ Pre-flight: Fresh Mac Setup ═══"
 
+  # ── Step 0: curl (everything depends on it) ──
+  if ! command -v curl &>/dev/null; then
+    fail "curl not found — cannot proceed (needed for Homebrew, uv, Agent Mail installs)"
+    info "On macOS: install Xcode CLT (below) which provides curl"
+    info "On Linux: apt-get install curl OR yum install curl"
+    # Don't return yet — Xcode CLT install (next step) will provide curl on macOS
+  fi
+
   # ── Step 1: Xcode Command Line Tools ──
   # On fresh Mac, git/clang are Apple shims that trigger a GUI popup.
   # Detect this BEFORE calling git --version to avoid invisible hang.
@@ -537,6 +569,12 @@ phase_preflight() {
       pass "Xcode Command Line Tools installed"
     else
       pass "Xcode CLT already installed"
+    fi
+
+    # Recheck curl after Xcode CLT (it provides curl on macOS)
+    if ! command -v curl &>/dev/null; then
+      fail "curl still not found after Xcode CLT install — cannot proceed"
+      return 1
     fi
   fi
 
@@ -946,6 +984,11 @@ phase_3() {
     # the install script adds 'alias bd=br' to .zshrc which masks bd (Go).
     # cd ~ ensures install goes to HOME, not project directory.
     # Run install in background subshell — NEVER let it block
+    # IMPORTANT: Export PATH with uv locations BEFORE spawning subshell.
+    # On fresh Mac, uv was just installed by preflight and lives in ~/.local/bin
+    # or ~/.cargo/bin. The background bash -s won't source .zshrc, so it needs
+    # these paths explicitly in the inherited environment.
+    export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
     (cd ~ && curl -fsSL "https://raw.githubusercontent.com/Dicklesworthstone/mcp_agent_mail/main/scripts/install.sh?$(date +%s)" \
       | bash -s -- --yes --skip-beads > /tmp/agent-mail-install.log 2>&1) &
     local install_pid=$!
@@ -1040,7 +1083,18 @@ phase_4() {
   # Show MCP server commands
   info "Configure MCP servers in Claude Code:"
   info "  claude mcp add chromadb -- uvx chroma-mcp --client-type http --host localhost --port 8000"
-  info "  claude mcp add --transport http agent-mail \"http://localhost:8765/mcp\" --header \"Authorization: Bearer <TOKEN>\""
+  # Show token location so user knows where to find it
+  local am_token=""
+  if [[ -f "$HOME/mcp_agent_mail/.env" ]]; then
+    am_token=$(grep -E "^(BEARER_TOKEN|MCP_AUTH_TOKEN)" "$HOME/mcp_agent_mail/.env" 2>/dev/null | head -1 | cut -d'=' -f2-)
+  fi
+  if [[ -n "$am_token" ]]; then
+    info "  claude mcp add --transport http agent-mail \"http://localhost:8765/mcp\" --header \"Authorization: Bearer $am_token\""
+    info "  (token from ~/mcp_agent_mail/.env)"
+  else
+    info "  claude mcp add --transport http agent-mail \"http://localhost:8765/mcp\" --header \"Authorization: Bearer <TOKEN>\""
+    info "  Find your token: grep BEARER ~/mcp_agent_mail/.env"
+  fi
 
   pass "Permissions phase complete"
 }

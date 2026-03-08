@@ -32,7 +32,7 @@ rm -f file                  # NOT: rm file
 rm -rf directory            # NOT: rm -r directory
 ```
 
-Other commands: `scp -o BatchMode=yes` | `ssh -o BatchMode=yes` | `apt-get -y` | `HOMEBREW_NO_AUTO_UPDATE=1 brew`
+Other commands: `scp -o BatchMode=yes` | `ssh -o BatchMode=yes` | `HOMEBREW_NO_AUTO_UPDATE=1 brew`
 
 ## Issue Tracking with bd (beads)
 
@@ -135,4 +135,4 @@ bd ready              # Find available work
    ```
 5. Verify all changes committed AND pushed
 
-**CRITICAL**: Work is NOT complete until `git push` succeeds. NEVER stop before pushing.
+**CRITICAL**: Work is NOT complete until `git push` succeeds. NEVER skip the push step — always initiate `git push` (system will prompt user for approval per blocklist).

@@ -630,8 +630,11 @@ curl http://localhost:8765/health/liveness     # Expect {"status":"alive"}
 ### Connect to Claude Code
 
 ```bash
+# Find your token (generated during install):
+grep BEARER ~/mcp_agent_mail/.env
+
 claude mcp add --transport http agent-mail "http://localhost:8765/mcp" \
-  --header "Authorization: Bearer <TOKEN>"
+  --header "Authorization: Bearer <TOKEN-FROM-ABOVE>"
 claude mcp list                       # Expect "agent-mail" in output
 ```
 
