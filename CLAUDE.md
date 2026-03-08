@@ -51,6 +51,8 @@
 
 ## Task Management
 
+> Full setup & workflow details: [setup/setup.md](setup/setup.md)
+
 1. **Plan First**: Decompose into beads hierarchy (`bd create --type=epic/feature/task`)
 2. **Verify Plan**: `bd dep tree <epic>` — review before starting
 3. **Track Progress**: `bd update <id> --status=in_progress` → `bd close <id>`
