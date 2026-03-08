@@ -9,7 +9,7 @@ sync-mro.2.1,bd-atom1: Step atomicity,task,closed,1,sync-mro.2,(all),2026-03-08,
 sync-mro.2.2,bd-step1: Phase D-M steps,task,closed,1,sync-mro.2,(all),2026-03-08,Created 24 new step files
 sync-mro.2.3,bd-adr1: ADRs,task,closed,1,sync-mro.2,(all),2026-03-08,Created template and 5 pilot ADRs
 sync-mro.2.4,bd-agent1: Agent normalization,task,closed,1,sync-mro.2,(all),2026-03-08,All 29 agents ≥40 lines
-sync-mro.2.5,bd-tea-kb: TEA knowledge,task,closed,1,sync-mro.2,tea,2026-03-08,"Completed: 46 KB files, 3 agents differentiated (Fenris/Vera/Quinn), resume-validation workflow full. Evidence: ADR-004 amended, manifests updated."
+sync-mro.2.5,bd-tea-kb: TEA knowledge,task,closed,1,sync-mro.2,tea,2026-03-08,"Completed: 44 KB files (accessibility-testing, user-acceptance-testing, 42 core), 3 agents differentiated (Fenris/Vera/Quinn), resume-validation workflow full. Evidence: ADR-004 amended, manifests updated."
 sync-mro.2.6,bd-manifest1: Config auditing,task,in_progress,1,sync-mro.2,core,2026-03-08,5 manifests validation
 sync-mro.2.7,bd-gate1: Validation template,task,open,1,sync-mro.2,core,2026-03-08,Release checklist and validation
 sync-mro.3,PHASE C: Beads Wiring,feature,open,1,sync-mro,(all),2026-03-08,Task closure and dependency wiring
