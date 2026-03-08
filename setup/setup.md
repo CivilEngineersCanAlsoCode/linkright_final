@@ -683,15 +683,34 @@ Bash(git push*), Bash(git reset*), Bash(rm -rf*), Bash(docker rm*)
 
 Each phase depends on the previous. If setup fails mid-way, resume from first open task.
 
-| Phase | Component     | Depends On | Action                          | Verification                     |
-|-------|---------------|------------|---------------------------------|----------------------------------|
-| 0     | Prerequisites | —          | Check git, docker, node, python 3.11+, uv | All commands return versions |
-| 1     | Beads         | Phase 0    | Install + `bd init`             | `bd info` → no error             |
+| Phase      | Component     | Depends On | Action                                         | Verification                     |
+|------------|---------------|------------|-------------------------------------------------|----------------------------------|
+| preflight  | Fresh Mac     | —          | Xcode CLT, Homebrew, node, python, dolt, uv, git identity | All tools in PATH |
+| 0          | Prerequisites | preflight  | Verify git, docker, node, python 3.11+, uv    | All commands return versions     |
+| 1          | Beads         | Phase 0    | Install + `bd init` (npm EACCES-safe)          | `bd info` → no error             |
 | 2     | ChromaDB      | Phase 0    | Docker compose + bind mount     | `curl localhost:8000/api/v2/heartbeat` → JSON |
 | 3     | Agent Mail    | Phase 0    | Install script + MCP connect    | `curl localhost:8765/health/liveness` → 200 |
 | 4     | Permissions   | Phase 1    | Update settings.json + hooks    | `claude mcp list` → shows servers |
 | 5     | Seed Knowledge| Phases 1-4 | Bootstrap Procedure (Section 15)| `bd memories project` → has output |
 | 6     | Verify All    | Phases 1-5 | Run all 7 health checks         | All pass                          |
+
+### Pre-flight Phase: Fresh Mac Setup
+
+> Runs automatically before Phase 0. Skip with `--skip-preflight` if tools are already installed.
+
+The pre-flight phase handles the "brand new Mac with nothing installed" scenario:
+
+1. **Xcode CLT**: Detects Apple shim (fake `git` that triggers GUI popup) via `xcode-select -p`. Auto-installs non-interactively and waits for completion.
+2. **Homebrew**: Installs via `NONINTERACTIVE=1` to avoid terminal hangs. Adds `/opt/homebrew/bin/brew` to PATH for Apple Silicon.
+3. **Missing tools**: Auto-installs `node`, `python@3.11`, `dolt` via `brew install`. Uses `HOMEBREW_NO_AUTO_UPDATE=1` for speed.
+4. **uv**: Installs via `curl -LsSf https://astral.sh/uv/install.sh | sh` (needed for Agent Mail).
+5. **Git identity**: Checks `git config --global user.name/email`. Prompts interactively if missing (required for dolt/beads commits).
+
+**Timeout behavior**: Install-heavy phases (1=Beads, 2=ChromaDB, 3=Agent Mail) have **no timeout** — `npm install`, `docker pull`, and `git clone` can take minutes on slow connections. Phases 4-6 keep the 120s timeout.
+
+**npm EACCES**: Phase 1 detects npm permission errors (common with macOS `.pkg` Node installs) and falls back to `sudo npm install -g` or `brew install beads`.
+
+**Agent Mail safety**: The installer is given a 15s grace period on SIGTERM before SIGKILL, preventing corrupted venv from mid-write kills.
 
 ### Phase 1 Detail: Beads Tracks Its Own Setup
 

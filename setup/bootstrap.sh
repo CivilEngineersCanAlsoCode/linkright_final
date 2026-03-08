@@ -2,11 +2,13 @@
 # bootstrap.sh — Full autonomous dev environment setup
 # Based on setup/setup.md v8.0 Sections 16-20
 #
-# Usage: ./setup/bootstrap.sh [--phase N] [--no-report]
-#   --phase N      Resume from phase N (0-6)
-#   --no-report    Skip bug reporting prompts
+# Usage: ./setup/bootstrap.sh [--phase N] [--no-report] [--skip-preflight]
+#   --phase N         Resume from phase N (0-6)
+#   --no-report       Skip bug reporting prompts
+#   --skip-preflight  Skip pre-flight installer (Xcode CLT, Homebrew, etc.)
 #
 # Phases:
+#   preflight: Auto-install Xcode CLT, Homebrew, node, python, uv, dolt, git identity
 #   0: Prerequisites check
 #   1: Beads install + init
 #   2: ChromaDB docker setup
@@ -32,8 +34,13 @@ REPO_URL="https://github.com/$REPO_OWNER/$REPO_NAME"
 CHROMADB_DIR="$HOME/.autonomous-dev/chromadb"
 AGENT_MAIL_HEALTH="http://localhost:8765/health/liveness"
 CHROMADB_HEALTH="http://localhost:8000/api/v2/heartbeat"  # Direct ChromaDB port
-PHASE_TIMEOUT=120  # seconds per phase max
+PHASE_TIMEOUT_DEFAULT=120  # seconds per phase max (for lightweight phases)
+# Install-heavy phases (1=Beads, 2=ChromaDB, 3=Agent Mail) get no timeout
+# because npm install, docker pull, and git clone can take minutes.
+# Phases 4-6 (permissions, seed, verify) are fast and keep the timeout.
+declare -A PHASE_TIMEOUTS=( [1]=0 [2]=0 [3]=0 [4]=120 [5]=120 [6]=120 )
 START_PHASE=0
+SKIP_PREFLIGHT=false
 BUG_REPORT_ENABLED=true
 PHASE_LOG="/tmp/bootstrap-phase-$$.log"
 FULL_LOG="/tmp/bootstrap-full-$$.log"
@@ -130,6 +137,7 @@ while [[ $# -gt 0 ]]; do
   case $1 in
     --phase) START_PHASE="$2"; shift 2 ;;
     --no-report) BUG_REPORT_ENABLED=false; shift ;;
+    --skip-preflight) SKIP_PREFLIGHT=true; shift ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
@@ -343,40 +351,50 @@ run_phase() {
   local phase_num="$1"
   local phase_name="${PHASE_NAMES[$phase_num]}"
 
+  # Per-phase timeout: install-heavy phases (1,2,3) get 0 = no timeout
+  local timeout=${PHASE_TIMEOUTS[$phase_num]:-$PHASE_TIMEOUT_DEFAULT}
+
   # Clear phase log for this phase
   > "$PHASE_LOG"
 
-  # Run phase directly (output goes to terminal), capture to log via script
-  # Using a simple approach: run in background with timeout, capture exit code
   local exit_code=0
 
-  # Start phase in background for timeout control
+  # Run phase in its own process group (set -m) so we can clean up all children
   # NOTE: Exit code from process substitution (> >(...)) can be unreliable in bash.
   # This is acceptable because run_phase always returns 0 (continues to next phase).
   # The exit code is only used for bug reporting, not flow control.
+  set -m 2>/dev/null || true  # enable job control for process groups
   "phase_$phase_num" > >(while IFS= read -r line; do echo "$line"; echo "$line" >> "$PHASE_LOG"; echo "$line" >> "$FULL_LOG"; done) 2>&1 &
   local pid=$!
 
-  # Wait with timeout
-  local waited=0
-  while kill -0 "$pid" 2>/dev/null && [[ $waited -lt $PHASE_TIMEOUT ]]; do
-    sleep 1
-    waited=$((waited + 1))
-  done
-
-  if kill -0 "$pid" 2>/dev/null; then
-    # Phase timed out — kill it and all children
-    kill -- -"$pid" 2>/dev/null || kill "$pid" 2>/dev/null
-    wait "$pid" 2>/dev/null
-    exit_code=124
-    local msg="Phase $phase_num TIMED OUT after ${PHASE_TIMEOUT}s (likely a blocking process)"
-    fail "$msg"
-    echo "$msg" >> "$PHASE_LOG"
-    echo "$msg" >> "$FULL_LOG"
-  else
+  if [[ $timeout -eq 0 ]]; then
+    # No timeout — just wait for completion (install phases can take minutes)
     wait "$pid" 2>/dev/null
     exit_code=$?
+  else
+    # Wait with timeout
+    local waited=0
+    while kill -0 "$pid" 2>/dev/null && [[ $waited -lt $timeout ]]; do
+      sleep 1
+      waited=$((waited + 1))
+    done
+
+    if kill -0 "$pid" 2>/dev/null; then
+      # Phase timed out — kill the entire process group
+      kill -- -"$pid" 2>/dev/null || kill "$pid" 2>/dev/null
+      wait "$pid" 2>/dev/null
+      exit_code=124
+      local msg="Phase $phase_num TIMED OUT after ${timeout}s (likely a blocking process)"
+      fail "$msg"
+      echo "$msg" >> "$PHASE_LOG"
+      echo "$msg" >> "$FULL_LOG"
+    else
+      wait "$pid" 2>/dev/null
+      exit_code=$?
+    fi
   fi
+
+  set +m 2>/dev/null || true  # restore job control state
 
   # Report if failed
   if [[ $exit_code -ne 0 ]]; then
@@ -492,6 +510,139 @@ recover_beads() {
 }
 
 # ─────────────────────────────────────────────
+# Pre-flight: Auto-install prerequisites on fresh Mac
+# ─────────────────────────────────────────────
+# Handles the "brand new Mac" scenario where nothing is installed.
+# Detects Apple shims, installs Homebrew, node, python, uv, dolt,
+# and ensures git identity is configured.
+# Skip with: --skip-preflight (for machines that already have these)
+
+phase_preflight() {
+  echo ""
+  echo "═══ Pre-flight: Fresh Mac Setup ═══"
+
+  # ── Step 1: Xcode Command Line Tools ──
+  # On fresh Mac, git/clang are Apple shims that trigger a GUI popup.
+  # Detect this BEFORE calling git --version to avoid invisible hang.
+  if [[ "$(uname)" == "Darwin" ]]; then
+    if ! xcode-select -p &>/dev/null; then
+      warn "Xcode Command Line Tools not installed"
+      info "Installing now — this takes 5-20 minutes on first run..."
+      xcode-select --install 2>/dev/null || true
+      # Wait for installation to complete (xcode-select -p returns 0 when done)
+      info "Waiting for Xcode CLT installation to finish..."
+      while ! xcode-select -p &>/dev/null; do
+        sleep 10
+      done
+      pass "Xcode Command Line Tools installed"
+    else
+      pass "Xcode CLT already installed"
+    fi
+  fi
+
+  # ── Step 2: Homebrew ──
+  if ! command -v brew &>/dev/null; then
+    info "Installing Homebrew (package manager)..."
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add brew to PATH for Apple Silicon
+    if [[ -f /opt/homebrew/bin/brew ]]; then
+      eval "$(/opt/homebrew/bin/brew shellenv)"
+    fi
+    if command -v brew &>/dev/null; then
+      pass "Homebrew installed"
+    else
+      fail "Homebrew installation failed — install manually: https://brew.sh"
+      return 1
+    fi
+  else
+    pass "Homebrew already installed"
+  fi
+
+  # ── Step 3: Install missing tools via Homebrew ──
+  local brew_packages=()
+
+  if ! command -v node &>/dev/null; then
+    brew_packages+=(node)
+  fi
+
+  if command -v python3 &>/dev/null; then
+    local py_minor
+    py_minor=$(python3 -c 'import sys; print(sys.version_info.minor)' 2>/dev/null || echo "0")
+    if [[ "$py_minor" -lt 11 ]]; then
+      brew_packages+=(python@3.11)
+    fi
+  else
+    brew_packages+=(python@3.11)
+  fi
+
+  if ! command -v dolt &>/dev/null; then
+    brew_packages+=(dolt)
+  fi
+
+  if [[ ${#brew_packages[@]} -gt 0 ]]; then
+    info "Installing: ${brew_packages[*]}..."
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install "${brew_packages[@]}"
+    pass "Installed: ${brew_packages[*]}"
+  else
+    pass "node, python3.11+, dolt already installed"
+  fi
+
+  # ── Step 3b: uv (Python package manager, needed for Agent Mail) ──
+  if ! command -v uv &>/dev/null; then
+    info "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    # Add to PATH for current session
+    export PATH="$HOME/.local/bin:$PATH"
+    if command -v uv &>/dev/null; then
+      pass "uv installed"
+    else
+      warn "uv install may need shell restart — continuing"
+    fi
+  else
+    pass "uv already installed"
+  fi
+
+  # ── Step 4: Git identity ──
+  # Dolt (used by beads) requires git user.name and user.email for commits.
+  # Without these, bd init and bd remember will fail with "Author identity unknown".
+  local git_name git_email
+  git_name=$(git config --global user.name 2>/dev/null || echo "")
+  git_email=$(git config --global user.email 2>/dev/null || echo "")
+
+  if [[ -z "$git_name" || -z "$git_email" ]]; then
+    warn "Git identity not configured (required for beads/dolt)"
+    if [[ -t 0 ]]; then
+      # Interactive terminal — prompt user
+      if [[ -z "$git_name" ]]; then
+        echo -n "  Enter your name for git commits: "
+        read -r git_name </dev/tty 2>/dev/null || git_name=""
+        if [[ -n "$git_name" ]]; then
+          git config --global user.name "$git_name"
+        fi
+      fi
+      if [[ -z "$git_email" ]]; then
+        echo -n "  Enter your email for git commits: "
+        read -r git_email </dev/tty 2>/dev/null || git_email=""
+        if [[ -n "$git_email" ]]; then
+          git config --global user.email "$git_email"
+        fi
+      fi
+    fi
+
+    if [[ -z "$(git config --global user.name 2>/dev/null)" ]]; then
+      warn "Git user.name still not set — bd init may fail"
+      warn "Fix manually: git config --global user.name 'Your Name'"
+    else
+      pass "Git identity configured: $(git config --global user.name) <$(git config --global user.email)>"
+    fi
+  else
+    pass "Git identity: $git_name <$git_email>"
+  fi
+
+  pass "Pre-flight complete"
+}
+
+# ─────────────────────────────────────────────
 # Phase 0: Prerequisites
 # ─────────────────────────────────────────────
 phase_0() {
@@ -591,7 +742,20 @@ phase_1() {
     # Prefer npm — gives latest version (v0.59.0+) with memory features
     # IMPORTANT: Do NOT install beads_rust (br) — it lacks remember/memories/prime
     if command -v npm &>/dev/null; then
-      npm install -g @beads/bd
+      # Detect npm EACCES: macOS .pkg Node installs put global modules in /usr/local/lib
+      # which requires sudo. Homebrew installs go to /opt/homebrew and don't need sudo.
+      if npm install -g @beads/bd 2>&1; then
+        : # success
+      else
+        local npm_err=$?
+        if npm install -g @beads/bd 2>&1 | grep -qi "EACCES\|permission denied"; then
+          warn "npm global install hit EACCES — trying with sudo..."
+          sudo npm install -g @beads/bd
+        else
+          warn "npm install failed (exit $npm_err) — trying brew fallback"
+          command -v brew &>/dev/null && brew install beads
+        fi
+      fi
     elif command -v brew &>/dev/null; then
       brew install beads
     else
@@ -787,7 +951,7 @@ phase_3() {
     local install_pid=$!
 
     info "Waiting for Agent Mail to come up..."
-    for i in $(seq 1 45); do
+    for i in $(seq 1 90); do
       if curl -sf "$AGENT_MAIL_HEALTH" &>/dev/null; then
         pass "Agent Mail healthy on :8765"
         return 0
@@ -799,9 +963,22 @@ phase_3() {
       sleep 2
     done
 
-    # Kill installer if still running (it may be stuck in foreground server)
+    # Graceful shutdown: SIGTERM first, then wait for cleanup, then SIGKILL only if needed.
+    # The installer may be mid-write on the venv — killing it abruptly corrupts the install.
     if kill -0 "$install_pid" 2>/dev/null; then
+      info "Install still running — sending graceful shutdown (SIGTERM)..."
       kill "$install_pid" 2>/dev/null
+      # Give installer 15s to finish current operation and exit cleanly
+      local grace_wait=0
+      while kill -0 "$install_pid" 2>/dev/null && [[ $grace_wait -lt 15 ]]; do
+        sleep 1
+        grace_wait=$((grace_wait + 1))
+      done
+      # Only force-kill if still alive after grace period
+      if kill -0 "$install_pid" 2>/dev/null; then
+        warn "Installer didn't exit gracefully — force killing"
+        kill -9 "$install_pid" 2>/dev/null
+      fi
       wait "$install_pid" 2>/dev/null
     fi
 
@@ -980,6 +1157,16 @@ phase_6() {
 cleanup() {
   rm -f "$PHASE_LOG" 2>/dev/null
   # Keep FULL_LOG for debugging: /tmp/bootstrap-full-$$.log
+
+  # Kill any child processes spawned by this script (prevents orphan dolt/agent-mail processes)
+  # Using process group: kill all processes in our group except ourselves
+  local my_pgid
+  my_pgid=$(ps -o pgid= -p $$ 2>/dev/null | tr -d ' ')
+  if [[ -n "$my_pgid" ]]; then
+    # Send SIGTERM to process group (negative PGID), excluding ourselves
+    # This catches any backgrounded install processes, health-check loops, etc.
+    kill -- -"$my_pgid" 2>/dev/null || true
+  fi
 }
 trap cleanup EXIT
 
@@ -990,6 +1177,11 @@ echo "╔═══════════════════════�
 echo "║   Autonomous Dev Environment Bootstrap   ║"
 echo "║   setup/setup.md v8.0 — Phases 0-6       ║"
 echo "╚══════════════════════════════════════════╝"
+
+# Pre-flight: auto-install Xcode CLT, Homebrew, node, python, dolt, uv, git identity
+if [[ "$SKIP_PREFLIGHT" != true && "$START_PHASE" -le 0 ]]; then
+  phase_preflight
+fi
 
 # Phase 0 runs directly (can exit 1 if hard prereqs missing)
 if [[ "$START_PHASE" -le 0 ]]; then
