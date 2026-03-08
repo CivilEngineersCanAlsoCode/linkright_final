@@ -1,3 +1,5 @@
 agent: tea-validator
-custom_rules: []
+custom_rules:
+  - "Always execute full checklist from adr-quality-readiness-checklist.md before voting"
+  - "Load nfr-criteria.md when assessing NFR gates (performance, security, compliance)"
 project_overrides: {}

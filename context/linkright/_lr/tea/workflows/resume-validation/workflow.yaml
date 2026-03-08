@@ -1,9 +1,12 @@
 name: resume-validation
 description: "Quantitative and qualitative validation of ATS-optimized resumes"
+version: "2.0.0"
 config_source: "{project-root}/_lr/_config/manifest.yaml"
 installed_path: "{project-root}/_lr/tea/workflows/resume-validation"
+
 instructions: "{installed_path}/instructions.md"
 template: "{installed_path}/templates/validation-report.template.md"
+
 input_file_patterns:
   optimized_resume:
     pattern: "data/optimized-resume.md"
@@ -11,3 +14,15 @@ input_file_patterns:
   target_jd:
     pattern: "data/jd-profile.yaml"
     strategy: FULL_LOAD
+
+validation:
+  steps:
+    - path: "{installed_path}/steps-v/step-01-validate.md"
+    - path: "{installed_path}/steps-v/step-02-validate.md"
+    - path: "{installed_path}/steps-v/step-03-validate.md"
+    - path: "{installed_path}/steps-v/step-04-validate.md"
+    - path: "{installed_path}/steps-v/step-05-validate.md"
+
+outputs:
+  validation_report: "{installed_path}/output/validation-report.md"
+  gate_decision: "{installed_path}/output/gate-decision.yaml"

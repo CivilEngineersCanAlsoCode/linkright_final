@@ -1,0 +1,5 @@
+agent: tea-qa-engineer
+custom_rules:
+  - "Always follow test-quality.md DoD: no hard waits, no conditionals, < 300 lines"
+  - "Load playwright-config.md before any Playwright configuration task"
+project_overrides: {}

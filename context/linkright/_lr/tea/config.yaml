@@ -1,8 +1,43 @@
-# TEA (Technical Evaluation & Automation) Module Configuration
+# TEA (Test Engineering & Assurance) Module Configuration
 
+version: "2.0.0"
 module_id: tea
 enabled: true
 priority: 5
 
+# Specialized agents
+agents:
+  - id: tea-scout
+    name: Fenris
+    title: Test Discovery & Risk Scout
+    icon: 🔬
+  - id: tea-validator
+    name: Vera
+    title: Quality Gate Enforcer
+    icon: ⚖️
+  - id: tea-qa-engineer
+    name: Quinn
+    title: Test Execution Specialist
+    icon: 🧪
+
+# Knowledge domains (12+ comprehensive files)
+knowledge_domains:
+  - accessibility-testing (WCAG 2.1/2.2 AA compliance framework)
+  - api-testing-patterns
+  - burn-in (CI pipeline test execution)
+  - component-tdd (React unit testing)
+  - contract-testing (Pact framework)
+  - data-factories (Test data management)
+  - fixture-architecture (Fixture composition patterns)
+  - nfr-criteria (Non-functional requirements gating)
+  - overview (Tea module architecture)
+  - risk-governance (Risk classification matrix)
+  - test-levels-framework (Unit/Integration/E2E/UAT)
+  - test-quality (Definition of Done for tests)
+  - user-acceptance-testing (UAT stakeholder validation)
+
+# Features
 features:
   resume_validation: true
+  quality_gating: true
+  risk_assessment: true

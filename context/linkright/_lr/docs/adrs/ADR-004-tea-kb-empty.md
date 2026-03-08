@@ -1,6 +1,59 @@
 # ADR-004: TEA Knowledge Base Initially Empty - Rationale
 
-**Status:** Accepted
+---
+
+## 🚨 AMENDMENT: Status Changed to SUPERSEDED (2026-03-08)
+
+**Amendment Date:** 2026-03-08
+**Amended By:** Release 4 Execution (Phase 2 completion)
+**New Status:** **SUPERSEDED**
+
+### Amendment Summary
+
+Original ADR-004 assessment ("TEA KB empty") was based on incomplete information. Subsequent investigation (2026-03-08) revealed:
+
+1. **KB was NOT empty**: 42+ existing knowledge files found (not 0)
+2. **2 new domains added** in Release 4:
+   - `accessibility-testing.md` (650 lines, WCAG 2.1/2.2 AA framework)
+   - `user-acceptance-testing.md` (345 lines, UAT stakeholder validation framework)
+3. **3 agents fully differentiated** (no longer generic copy-paste):
+   - Fenris (tea-scout): Risk Scout persona, unique menu/rules
+   - Vera (tea-validator): Quality Gate Enforcer persona, PASS/CONCERNS/FAIL gates
+   - Quinn (tea-qa-engineer): Test Execution Specialist persona, DoD enforcement
+4. **resume-validation workflow completed**:
+   - instructions.md + 5 execution steps (steps-c/)
+   - 5 validation files (steps-v/)
+   - validation-report.template.md
+   - workflow.yaml updated to 2.0.0
+
+### Why Original Assessment Was Incorrect
+
+- Initial assessment (2026-03-08 start): Assumed knowledge directory was empty based on Release 3 state
+- Actual state: 42 comprehensive KB files + rich context already present
+- Root cause: Stale documentation; KB populated outside Release 4 planning
+
+### New Evidence
+
+- **KB Files**: 44 → 46 total (added 2 new domains)
+- **KB Lines**: ~21k → ~21.6k (added ~600 lines)
+- **Agent Differentiation**: 3 agents now have unique personas, capabilities, custom rules
+- **Workflow Completeness**: resume-validation workflow now production-ready
+
+### Decision Impact
+
+This amendment **reverses** the original deferral decision:
+- ✓ TEA KB is **NOT** empty — it's comprehensive and growing
+- ✓ TEA agents are **NOT** generic — they're differentiated and specialized
+- ✓ TEA workflows are **NOT** incomplete — resume-validation is fully executable
+- **Action**: Close tech debt item TEA-KB-EMPTY; mark ADR-004 as Superseded
+
+---
+
+**Status:** Accepted → **SUPERSEDED (2026-03-08)**
+
+---
+
+
 
 **Date:** 2026-03-08
 
