@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bd *)",
+      "Bash(git status*)",
+      "Bash(git add *)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git commit *)",
+      "Bash(npm *)",
+      "Bash(node *)",
+      "Bash(npx *)",
+      "Bash(python*)",
+      "Bash(pytest*)",
+      "Bash(docker compose *)",
+      "Bash(docker ps*)",
+      "Bash(curl *)",
+      "Bash(which *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(rm -rf /*)",
+      "Bash(git reset --hard*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "command": "bd prime",
+        "description": "Load beads context at session start"
+      }
+    ],
+    "PreCompact": [
+      {
+        "command": "bd prime",
+        "description": "Preserve beads context before compaction"
+      }
+    ]
+  }
+}
