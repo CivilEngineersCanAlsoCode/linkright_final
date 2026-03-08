@@ -487,12 +487,9 @@ phase_0() {
     warn "gh CLI not found (used for bug reporting only)"
   fi
 
-  # Check dolt (needed for beads — bd Go uses Dolt as backend)
+  # Dolt is optional — bd runs in JSONL-only mode (no-db: true) by default
   if command -v dolt &>/dev/null; then
-    pass "dolt: $(dolt version 2>&1 | head -1)"
-  else
-    warn "dolt not found — bd will install/manage its own dolt server"
-    warn "Install manually: brew install dolt (or see https://docs.dolthub.com/introduction/installation)"
+    pass "dolt (optional): $(dolt version 2>&1 | head -1)"
   fi
 
   if [[ "$ok" == false ]]; then
@@ -588,16 +585,22 @@ phase_1() {
     fi
   fi
 
-  # Step 3: Fix dolt database name mismatch
-  # bd init creates a dolt database named after the project prefix (e.g., "sync")
-  # but the default dolt_database config is "beads". This causes "database not found"
-  # errors whenever the dolt server restarts. Fix it immediately after init.
-  local prefix
-  prefix=$(basename "$(pwd)")
-  bd dolt set database "$prefix" 2>/dev/null || true
-  pass "Dolt database name set to '$prefix'"
+  # Step 3: Enable JSONL-only mode (no-db)
+  # Dolt server mode is unstable with multiple projects (port conflicts, idle timeouts).
+  # JSONL-only mode: no server needed, memories still work, syncs via git.
+  if [[ -f ".beads/config.yaml" ]]; then
+    if grep -q "^# no-db: false" ".beads/config.yaml"; then
+      sed -i '' 's/^# no-db: false/no-db: true/' ".beads/config.yaml"
+    elif ! grep -q "^no-db:" ".beads/config.yaml"; then
+      echo "no-db: true" >> ".beads/config.yaml"
+    fi
+    pass "JSONL-only mode enabled (no Dolt server needed)"
+  fi
 
-  # Step 4: Final verification
+  # Step 4: Stop any dolt server that bd init may have started (not needed in no-db mode)
+  bd dolt stop 2>/dev/null || true
+
+  # Step 5: Final verification
   bd info
   pass "Beads ready"
 }
