@@ -1,23 +1,23 @@
-id,name,module,path,status,created_date,description
-wf-021,1-analysis,squick,_lr/squick/workflows/1-analysis,active,2026-03-08,1-analysis workflow
-wf-020,2-plan,squick,_lr/squick/workflows/2-plan,active,2026-03-08,2-plan workflow
-wf-019,3-solutioning,squick,_lr/squick/workflows/3-solutioning,active,2026-03-08,3-solutioning workflow
-wf-022,4-implementation,squick,_lr/squick/workflows/4-implementation,active,2026-03-08,4-implementation workflow
-wf-016,application-track,sync,_lr/sync/workflows/application-track,active,2026-03-08,application-track workflow
-wf-008,brainstorming,core,_lr/core/workflows/brainstorming,active,2026-03-08,brainstorming workflow
-wf-017,content-automation,flex,_lr/flex/workflows/content-automation,active,2026-03-08,content-automation workflow
-wf-007,context-gen,core,_lr/core/workflows/context-gen,active,2026-03-08,context-gen workflow
-wf-005,create-story,core,_lr/core/workflows/create-story,active,2026-03-08,create-story workflow
-wf-002,dev-story,core,_lr/core/workflows/dev-story,active,2026-03-08,dev-story workflow
-wf-009,document-project,core,_lr/core/workflows/document-project,active,2026-03-08,document-project workflow
-wf-003,document-system,core,_lr/core/workflows/document-system,active,2026-03-08,document-system workflow
-wf-011,jd-optimize,sync,_lr/sync/workflows/jd-optimize,active,2026-03-08,jd-optimize workflow
-wf-018,narrative-craft,cis,_lr/cis/workflows/narrative-craft,active,2026-03-08,narrative-craft workflow
-wf-012,outbound-campaign,sync,_lr/sync/workflows/outbound-campaign,active,2026-03-08,outbound-campaign workflow
-wf-004,party-mode,core,_lr/core/workflows/party-mode,active,2026-03-08,party-mode workflow
-wf-015,portfolio-deploy,sync,_lr/sync/workflows/portfolio-deploy,active,2026-03-08,portfolio-deploy workflow
-wf-014,quick-optimize,sync,_lr/sync/workflows/quick-optimize,active,2026-03-08,quick-optimize workflow
-wf-010,resume-validation,tea,_lr/tea/workflows/resume-validation,active,2026-03-08,resume-validation workflow
-wf-013,signal-capture,sync,_lr/sync/workflows/signal-capture,active,2026-03-08,signal-capture workflow
-wf-006,sprint-planning,core,_lr/core/workflows/sprint-planning,active,2026-03-08,sprint-planning workflow
-wf-001,sprint-status,core,_lr/core/workflows/sprint-status,active,2026-03-08,sprint-status workflow
+id,name,module,path,type,phase_coverage,step_count,description,status
+wf-001,sprint-status,core,_lr/core/workflows/sprint-status,markdown-workflow,none,3,Sprint status check workflow,active
+wf-002,dev-story,core,_lr/core/workflows/dev-story,yaml-workflow,none,0,Development story creation,stub
+wf-003,document-system,core,_lr/core/workflows/document-system,yaml-workflow,none,0,System documentation generator,stub
+wf-004,party-mode,core,_lr/core/workflows/party-mode,markdown-workflow,none,3,Party mode collaboration workflow,active
+wf-005,create-story,core,_lr/core/workflows/create-story,yaml-workflow,none,0,Story creation workflow,stub
+wf-006,sprint-planning,core,_lr/core/workflows/sprint-planning,yaml-workflow,none,0,Sprint planning workflow,stub
+wf-007,context-gen,core,_lr/core/workflows/context-gen,yaml-workflow,c,0,Context generation workflow,stub
+wf-008,brainstorming,core,_lr/core/workflows/brainstorming,markdown-workflow,none,3,Brainstorming workflow,active
+wf-009,document-project,core,_lr/core/workflows/document-project,yaml-workflow,none,0,Project documentation generator,stub
+wf-010,resume-validation,tea,_lr/tea/workflows/resume-validation,yaml-workflow,cv,0,Resume validation and QA,stub
+wf-011,jd-optimize,sync,_lr/sync/workflows/jd-optimize,yaml-workflow,cev,64,Job description optimization,active
+wf-012,outbound-campaign,sync,_lr/sync/workflows/outbound-campaign,yaml-workflow,cev,0,Outbound campaign automation,stub
+wf-013,signal-capture,sync,_lr/sync/workflows/signal-capture,yaml-workflow,cev,0,Career signal capture,stub
+wf-014,quick-optimize,sync,_lr/sync/workflows/quick-optimize,yaml-workflow,cev,0,Quick optimization workflow,stub
+wf-015,portfolio-deploy,sync,_lr/sync/workflows/portfolio-deploy,yaml-workflow,cev,0,Portfolio deployment and styling,stub
+wf-016,application-track,sync,_lr/sync/workflows/application-track,yaml-workflow,cev,0,Application tracking system,stub
+wf-017,content-automation,flex,_lr/flex/workflows/content-automation,yaml-workflow,cev,0,Social content automation,stub
+wf-018,narrative-craft,cis,_lr/cis/workflows/narrative-craft,yaml-workflow,cv,0,Narrative generation and optimization,stub
+wf-019,3-solutioning,squick,_lr/squick/workflows/3-solutioning,yaml-workflow,ce,0,Solution solutioning workflow,stub
+wf-020,2-plan,squick,_lr/squick/workflows/2-plan,yaml-workflow,ce,0,Planning workflow,stub
+wf-021,1-analysis,squick,_lr/squick/workflows/1-analysis,yaml-workflow,ce,0,Analysis workflow,stub
+wf-022,4-implementation,squick,_lr/squick/workflows/4-implementation,yaml-workflow,cev,0,Implementation workflow,stub

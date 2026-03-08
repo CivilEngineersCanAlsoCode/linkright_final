@@ -56,9 +56,80 @@
 1. **Plan First**: Decompose into beads hierarchy (`bd create --type=epic/feature/task`)
 2. **Verify Plan**: `bd dep tree <epic>` — review before starting
 3. **Track Progress**: `bd update <id> --status=in_progress` → `bd close <id>`
-4. **Explain Changes**: High-level summary at each step
-5. **Document Results**: `bd remember` key insights for future sessions
-6. **Capture Lessons**: `bd remember` after corrections (see [setup/setup.md](setup/setup.md) Section 7)
+4. **Evidence Required**: Every `bd close` MUST include documented evidence (see Section 6.5)
+5. **Explain Changes**: High-level summary at each step
+6. **Document Results**: `bd remember` key insights for future sessions
+7. **Capture Lessons**: `bd remember` after corrections (see [setup/setup.md](setup/setup.md) Section 7)
+
+---
+
+## 6. Evidence Collection — Mandatory for All Beads Closures
+
+**Rule:** Every `bd close` MUST include comprehensive EVIDENCE section. No exceptions.
+
+### Why?
+- ✅ **Auditability**: Months later, understand what was actually done and why
+- ✅ **Reproducibility**: Can verify changes or undo if needed
+- ✅ **Quality**: Prevents premature/incomplete closures
+- ✅ **Traceability**: Links Beads issues to actual code changes
+
+### Evidence Structure (Mandatory Fields)
+```
+EVIDENCE:
+- Input: [Original state before work]
+- Operation: [Exact steps taken]
+- Output: [Where results stored]
+- Metrics: [Success criteria satisfied — list them explicitly]
+- Files modified: [Exact file paths changed]
+- Test results: [If applicable, test output]
+```
+
+### Example (Correct)
+```bash
+bd close sync-qm-p0-1 --reason="✅ P0-1 COMPLETE: Workflow-manifest.csv populated
+
+EVIDENCE:
+- Input: 22 workflows in _lr/ directories, manifest header-only (0 rows)
+- Operation: Scanned all workflows, extracted phase coverage, counted steps
+- Operation: Enhanced CSV with 6 new columns, populated all 22 rows
+- Output: /context/linkright/_lr/_config/workflow-manifest.csv (23 lines)
+- Metrics satisfied:
+  ✅ All 22 workflows listed
+  ✅ No duplicates (verified with awk)
+  ✅ All paths exist and readable
+  ✅ Phase coverage accurate
+- Files modified: workflow-manifest.csv
+- Test results: CSV validation passed, all paths verified"
+```
+
+### Shortcut (Verbosity Matters — No Brevity Here)
+❌ DON'T DO THIS:
+```bash
+bd close sync-qm-p0-1 --reason="Done"
+```
+
+✅ ALWAYS DO THIS:
+```bash
+bd close sync-qm-p0-1 --reason="✅ [Task Name] COMPLETE
+
+EVIDENCE:
+- Input: [be specific]
+- Operation: [step by step]
+- Output: [exact paths]
+- Metrics satisfied: [list each one]
+- Files modified: [paths]
+- Test results: [proof]"
+```
+
+### Full Template
+See `.agents/workflows/EVIDENCE-TEMPLATE.md` for:
+- Detailed field definitions
+- Examples by issue type
+- Common mistakes to avoid
+- When to close vs. defer
+
+### Pre-Commit Hook
+Hook at `.agents/workflows/verify-beads-evidence.sh` enforces this automatically. Will reject `bd close` without EVIDENCE section.
 
 ---
 
