@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: autonomous-dev-chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      # BIND MOUNT — NOT a Docker volume. Data persists at ~/.autonomous-dev/chromadb/data/
+      # Survives: docker rm, docker uninstall, system restart
+      # Only rm -rf ~/.autonomous-dev/chromadb/data/ destroys it
+      - ${CHROMA_DATA_PATH:-./data}:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+    restart: unless-stopped
+
+  mcp-gateway:
+    image: chromadb/chroma-mcp-server:latest
+    container_name: autonomous-dev-mcp-gateway
+    ports:
+      - "${PORT:-8080}:8080"
+    environment:
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - MCP_AUTH_TOKEN=${MCP_AUTH_TOKEN}
+    depends_on:
+      - chromadb
+    restart: unless-stopped
