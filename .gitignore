@@ -1,5 +1,6 @@
 # macOS
 .DS_Store
+._*
 
 # Beads runtime files
 .beads/dolt-server.pid
@@ -9,3 +10,44 @@
 .beads/dolt-server.activity
 .beads/dolt-monitor.pid
 .beads/dolt-monitor.pid.lock
+.beads/dolt-access.lock
+.beads/backup/
+
+# Logs
+*.log
+firebase-debug.log
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker (local data, not code)
+.dolt/
+*.db
+
+# Temp scripts
+create_issues.sh
+
+# Autonomous dev kit (system-level, not project)
+.autonomous-dev/
+
+# Build artifacts
+dist/
+build/
+*.tgz
