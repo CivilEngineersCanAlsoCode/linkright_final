@@ -97,9 +97,10 @@ View tree: `bd dep tree <epic-id>`
 
 ### Auto-Sync
 
-bd auto-syncs with git:
-- Exports to `.beads/issues.jsonl` after changes (5s debounce)
-- Imports from JSONL when newer (e.g., after `git pull`)
+bd syncs via Dolt database replication (NOT git):
+- `.beads/` is gitignored — JSONL is a local backup, never committed to git
+- Cross-machine sync: `bd dolt push` / `bd dolt pull` (cell-level merge, no git conflicts)
+- Local backup: exports to `.beads/issues.jsonl` after changes (5s debounce)
 
 ### Rules
 
@@ -126,9 +127,11 @@ bd ready              # Find available work
 1. File issues for remaining work
 2. Run quality gates (if code changed)
 3. Update issue status
-4. Push to remote:
+4. Push to remote (with rebase conflict protection):
    ```bash
-   git pull --rebase
+   git pull --rebase || { git rebase --abort; git pull --no-rebase; }
+   # If rebase conflicts: abort, fallback to merge. If merge also conflicts: ask user.
+   # NEVER auto-resolve rebase conflicts — abort and fallback instead.
    bd sync
    git push
    git status          # MUST show "up to date with origin"

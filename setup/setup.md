@@ -108,7 +108,16 @@ INIT → LOAD → [BOOTSTRAP | OPERATE] → WORK_LOOP → CLOSING
 
 1. If Agent Mail → release ALL file reservations
 2. `git add <specific-files>` → `bd dolt pull` → `git commit`
-3. If Agent Mail → `send_message(subject="Session complete", body_md="<summary>")`
+3. **Safe push sequence** (rebase conflict protection):
+   ```bash
+   git pull --rebase
+   # If rebase conflicts occur:
+   #   1. git rebase --abort        (immediately abort — NEVER auto-resolve rebase conflicts)
+   #   2. git pull --no-rebase      (fallback to merge commit)
+   #   3. If merge ALSO conflicts → ask user for help. Do NOT auto-resolve.
+   git push
+   ```
+4. If Agent Mail → `send_message(subject="Session complete", body_md="<summary>")`
 
 ---
 
@@ -136,6 +145,10 @@ PICK → CLAIM → [RESERVE] → CONTEXT → IMPLEMENT → VERIFY → CLOSE → 
 - Message format: `checkpoint: 5 tasks completed [sync-xx, sync-yy, ...]`
 - Also commit on session end regardless of count
 - This is NOT in the BLOCKLIST — no permission needed
+- **CRITICAL**: Use `git add <specific-files>` — NEVER `git add .` or `git add -A`
+  - Only stage files that were modified by the 5 closed tasks
+  - If unsure which files belong to which task, use `git diff --name-only` and review before staging
+  - This prevents accidentally committing WIP for the next task or unrelated changes
 
 ### Agent Mail Steps (conditional — only if available)
 
@@ -352,8 +365,9 @@ After EVERY action, check result:
 
 **Retry limit**: 2 attempts per action. After 2 failures:
 1. `bd create --type=bug --title="<error-message>" -p 1 --label auto-detected`
-2. Try completely different approach
-3. If no alternative → send `ack_required` to user
+2. **Do NOT self-assign this bug.** Bugs with `auto-detected` label are for human triage only. Move on.
+3. Try completely different approach to the original task
+4. If no alternative → send `ack_required` to user
 
 ---
 

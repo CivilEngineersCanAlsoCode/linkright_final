@@ -103,11 +103,11 @@ bd close bd-42 --reason "Completed" --json
 
 ### Auto-Sync
 
-bd automatically syncs with git:
+bd syncs via Dolt database replication (NOT git):
 
-- Exports to `.beads/issues.jsonl` after changes (5s debounce)
-- Imports from JSONL when newer (e.g., after `git pull`)
-- No manual export/import needed!
+- `.beads/` is gitignored — JSONL is a local backup file, never committed to git
+- Cross-machine sync: `bd dolt push` / `bd dolt pull` (Dolt has cell-level merge, no git conflicts)
+- Local backup: exports to `.beads/issues.jsonl` after changes (5s debounce) for portability
 
 ### Important Rules
 
@@ -132,7 +132,10 @@ For setup details, see [setup/setup.md](setup/setup.md).
 3. **Update issue status** - Close finished work, update in-progress items
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
-   git pull --rebase
+   # Safe push with rebase conflict protection:
+   git pull --rebase || { git rebase --abort; git pull --no-rebase; }
+   # ^ If rebase conflicts: abort rebase, fallback to merge commit.
+   #   If merge ALSO conflicts: STOP and ask user. NEVER auto-resolve.
    bd sync
    git push
    git status  # MUST show "up to date with origin"
