@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This project uses **bd** (beads Go v0.59.0+) for issue tracking. Run `bd quickstart` to get started.
 
 ## Quick Reference
 
@@ -44,7 +44,7 @@ cp -rf source dest          # NOT: cp -r source dest
 ### Why bd?
 
 - Dependency-aware: Track blockers and relationships between issues
-- Version-controlled: Built on Dolt with cell-level merge
+- Version-controlled: Built on Dolt with cell-level merge + memory system (remember/memories/prime)
 - Agent-optimized: JSON output, ready work detection, discovered-from links
 - Prevents duplicate tracking systems and confusion
 

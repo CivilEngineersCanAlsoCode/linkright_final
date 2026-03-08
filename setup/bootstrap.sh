@@ -38,6 +38,10 @@ BUG_REPORT_ENABLED=true
 PHASE_LOG="/tmp/bootstrap-phase-$$.log"
 FULL_LOG="/tmp/bootstrap-full-$$.log"
 
+# Pinned working versions — update these after testing new versions
+BD_MIN_VERSION="0.59.0"       # bd (Go) — minimum version with memory features
+CHROMADB_IMAGE="chromadb/chroma:latest"  # ChromaDB Docker image
+
 # Capability flags — set during Phase 0, used by later phases
 DOCKER_AVAILABLE=false
 UV_AVAILABLE=false

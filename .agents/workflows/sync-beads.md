@@ -4,7 +4,10 @@ description: Task Management and Memory Management expert called Beads, to be us
 
 # Agent Instructions
 
-This project uses **bd** (beads) for ALL issue tracking. Run `bd onboard` to get started.
+This project uses **bd** (beads Go v0.59.0+) for ALL issue tracking. Run `bd quickstart` to get started.
+
+> **IMPORTANT**: Do NOT use `br` (beads_rust). It lacks memory features (remember/memories/prime).
+> Install bd (Go) via: `npm install -g @beads/bd`
 
 ## Quick Reference
 
@@ -36,8 +39,8 @@ Other commands: `scp -o BatchMode=yes` | `ssh -o BatchMode=yes` | `apt-get -y` |
 ### Why bd?
 
 - Dependency-aware: Track blockers and relationships
-- Version-controlled: Built on Dolt with cell-level merge
-- Agent-optimized: JSON output, ready work detection
+- Version-controlled: Built on Dolt with cell-level merge + memory system
+- Agent-optimized: JSON output, ready work detection, remember/memories/prime
 - Single source of truth: No markdown TODOs, no external trackers
 
 ### Issue Hierarchy
