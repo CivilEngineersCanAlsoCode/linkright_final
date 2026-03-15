@@ -1,5 +1,9 @@
 # step-01b: Resume if Interrupted
 
+## PRECONDITION
+🛑 NEVER execute this step without first completing `step-01-load-session-context.md`.
+✅ ALWAYS ensure that session context (user details, mode) is loaded into memory.
+
 **Agent:** lr-orchestrator
 **Phase:** Resumption check (between step-01 and step-01c)
 **Purpose:** Detect workflow interruption and resume from last checkpoint

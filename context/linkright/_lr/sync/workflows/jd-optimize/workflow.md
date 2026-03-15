@@ -43,4 +43,8 @@ Load and read full config from `{project-root}/_lr/lr-config.yaml` and resolve:
 
 ### 2. First Step EXECUTION
 
-Read fully and follow: `{project-root}/_lr/sync/workflows/jd-optimize/steps/step-01-ingest.md` to begin the workflow.
+Read fully and follow: `{project-root}/_lr/sync/workflows/jd-optimize/steps-c/step-01-load-session-context.md` to begin the workflow.
+
+### 3. Resume Sequence (if interrupted)
+
+Read fully and follow: `{project-root}/_lr/sync/workflows/jd-optimize/steps-c/step-01b-resume-if-interrupted.md` to restore session state.

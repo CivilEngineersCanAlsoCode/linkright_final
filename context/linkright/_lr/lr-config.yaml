@@ -9,11 +9,11 @@ system:
   document_output_language: English
 
 user:
-  name: "[USER_NAME]"
-  bio: "[USER_PROFESSIONAL_SUMMARY]"
-  target_role: "[TARGET_JOB_TITLE]"
-  target_companies: []
-  skills: []
+  name: "Satvik Jain"
+  bio: "Senior Software Engineer specializing in AI-driven automation, full-stack orchestration, and system optimization. Expert in building scalable, agentic workflows and high-performance backend systems."
+  target_role: "Senior Software Engineer / AI Architect"
+  target_companies: ["Google", "Spotify", "Amazon", "Anthropic", "OpenAI"]
+  skills: ["Python", "Go", "TypeScript", "React", "Docker", "Kubernetes", "LLM Orchestration", "Dolt", "ChromaDB"]
 
 modules:
   core:
@@ -43,6 +43,6 @@ distribution:
     mode: professional
     target_platform: web
   airtable:
-    url: "${AIRTABLE_WEBHOOK_URL}"
+    url: "https://api.airtable.com/v0/appBASEID/SyncTable"
   postiz:
-    url: "${POSTIZ_API_URL}"
+    url: "https://app.postiz.com/api/v1/posts"

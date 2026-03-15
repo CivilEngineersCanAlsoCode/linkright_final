@@ -1,35 +1,28 @@
-# Phase M (Final): Delivery Preparation - Handoff Package
+# Step 64: Generate Delivery Package
 
 ## MANDATORY EXECUTION RULES (READ FIRST)
-✅ ALWAYS prepare comprehensive handoff documentation.
-🛑 NEVER leave user without clear next steps.
+🛑 NEVER proceed if any core deliverables are missing.
+✅ ALWAYS ensure files are copied to the correct `{project-root}/_lr/_output/sync-artifacts/` subfolder.
 
 ## DEPENDENCIES
-- Requires: All previous phases completed
-- Requires: `step-63-success-validation` output
+- Requires: All previous optimization and generation steps (1-63) completed.
+- Requires: Final validated artifacts (resume, cover letter, talk points).
 
 ## EXECUTION PROTOCOLS
-1. [PREPARE] Generate delivery package:
-   - Final portfolio (all formats)
-   - Cover letter templates (if applicable)
-   - Interview talking points document
-   - Gap-bridging strategies for known weaknesses
-   - Quick reference for quantified achievements
-2. [DOCUMENT] Create handoff guide explaining:
-   - Portfolio structure and key differentiators
-   - How to customize for different roles
-   - Interview preparation suggestions
-   - Timeline and next steps
-3. [REVIEW] Ensure all deliverables present and correct.
-4. [PACKAGE] Create organized delivery folder structure.
-5. [OUTPUT] Generate delivery_package_ready.md confirmation.
+1. [MAP] Identify all artifacts generated during the session.
+2. [STRUCTURE] Create the organized delivery folder structure:
+   - `sync-artifacts/{Company}/{Date}/`
+3. [PACKAGE] Move or copy the following into the delivery structure:
+   - Final Resume (HTML/PDF/MD)
+   - Tailored Cover Letter
+   - Interview Talking Points Guide
+   - JD Analysis Report (`{optimized-jd}.md`)
+4. [FORMAT] Ensure all files are correctly named and follow the Linkright naming convention.
+5. [FINALIZE] Confirm the physical existence of the package on disk.
 
-## OUTPUT
-- Delivery package (portfolio + templates + guides)
-- delivery_package_ready.md: Handoff documentation
-- Next: Delivery and post-delivery support
+## OUTPUT ARTIFACT
+- **Internal State**: Delivery folder populated in `sync-artifacts/`.
+- **Success Criteria**: Folder exists and contains ≥4 core files.
 
-## NOTES
-- Comprehensive handoff sets user up for success
-- Clear documentation reduces confusion
-- Interview talking points particularly valuable
+## NEXT STEP
+- Proceed to `step-65-delivery-review.md` to verify package completeness.
