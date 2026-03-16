@@ -178,3 +178,57 @@ Q21. Multi-tenant vector store security: Embeddings can leak original text (~92%
 . Pre-process sensitive info: redact or tokenize PII before embedding
 . From a compliance view, treat embeddings as sensitive user data: log and audit all access, and support data-deletion requests by re-building affected indexes. GDPR/SOC2 considerations include: data minimization, strict access control, and thorough logging. In sum – one tenant per index + strict filtering + encryption
 . [Confidence: MEDIUM]
+
+
+LinkRight Core Architecture Research
+SECTION A: MCP Server Architecture (Phase 2 — ACCESS)
+Q1. MCP spec, transports, and client support: The MCP spec’s latest stable version is 2025-03-26 (as of Mar 2026)
+. MCP defines two primary transports: stdio (JSON-RPC over stdin/stdout)
+ and Streamable HTTP (HTTP POST for client→server, with optional Server-Sent Events for server→client)
+. Most IDE-based clients (Claude Code, Cursor, Windsurf, Codex) use stdio: they launch the MCP server as a subprocess
+. ChatGPT (via Connectors/Apps) uses HTTP+SSE – it cannot use stdio. Thus no single transport works for all. In practice, run your server for stdio (for Claude/Cursor/etc.) and also expose an HTTP endpoint for ChatGPT. Note: Cursor currently limits MCP to 40 tools
+; other clients have higher or unspecified limits.
+
+Q2. Building a DB-backed MCP server: For MongoDB + Dolt (MySQL), use existing MCP servers: MongoDB’s official MCP Server
+ (Node.js) and the MySQL MCP Server
+ (also Node.js). These are open-source and connect to local DBs. You can configure the Mongo server to connect to your local MongoDB (mongod) and the MySQL server to point at Dolt’s MySQL port. Both support only read-only queries by default. There’s also the FastMCP (Python) example from OpenAI’s docs
+. In general, the TypeScript/Node MCP servers are more mature (official Mongo, Supabase, Postgres, MySQL servers exist with good docs) than Python libraries. For tutorials, see MongoDB’s guide
+ and OpenAI’s “Building MCP servers” guide
+ which gives a Python example.
+
+Q3. ChatGPT MCP Connectors: ChatGPT now supports MCP via its Apps (formerly “Connectors”) feature
+. This is GA (rolled out end of 2025). The same MCP server can serve both Claude Code (stdio) and ChatGPT (HTTP) if ChatGPT can reach it. In practice, you run the server with an HTTP endpoint (e.g. on a public or tunneled address) and register it as a ChatGPT data-only app. On the ChatGPT side, you go into Developer Mode or use the GPT Builder to add an “App” and enter your server’s URL and tool metadata. Limitations: ChatGPT uses only HTTP+SSE (cannot spawn a subprocess), and it needs the server reachable over the internet or via a local dev mode. The MCP tools exposed to ChatGPT should follow OpenAI’s “search” and “fetch” schema if used for deep research
+. (This is fully supported; see the OpenAI dev docs.)
+
+Q4. MCP deployment (single-user, one EC2): With MongoDB, Dolt, etc. all on one machine, you have options:
+
+StdIO vs HTTP: You might run one MCP process for stdio (for local IDEs) and a second for HTTP (ChatGPT). Or use a single server framework that listens on stdin and on a TCP port. Node MCP servers allow specifying a --port (HTTP) and also support stdio config. Ports: avoid existing (Mongo 27017, n8n port, Agent-Mail 8765). For example, run mongodb-mcp-server on port 3000 and configure ChatGPT to http://YOUR_EC2:3000. IDE clients (VS Code, Claude Code) will still launch via stdio (use npx mongodb-mcp-server). In summary: no extra VMs needed; just start the MCP server twice or with dual mode. [Confidence: MEDIUM]
+SECTION B: Context Enforcement & RAG Patterns (Phase 2 — ACCESS)
+Q5. How AI coding tools handle context:
+
+Cursor (Turbopuffer): Cursor uses Turbopuffer’s vector search to index codebase. When querying, Cursor must hit the vectordb via Turbopuffer for context (rather than naively reading files). Turbopuffer’s pipeline: user query → Turbopuffer search → returns relevant passages
+. The agent then uses those passages as context. This enforces retrieval-first because raw file reads are not indexed into context.
+GitHub Copilot (Workspace): Copilot (via VSCode) reads files from disk on demand but also pre-fetches context around the file. It does not force RAG; it will include open file content and nearby code. It may also use local indexes (IntelliJ-like) for more context. It is less transparent.
+Devin/Codex Sandbox: Likely similar to Copilot: it has full filesystem access in a sandbox, but may rely on its own context window. No known forced retrieval, just built-in code context.
+Retrieval enforcement patterns: There aren’t formal papers labeled this, but the idea is to only expose tools like vector_search(query) and hide raw file-read from the agent. For example, provide an MCP tool searchCode(query) that uses your vectordb, and do not provide readFile except in very specific, narrow cases. The agent will naturally use the provided search tool because raw files are not in context. (This is akin to “tool-based RAG” designs in some agent papers.) Ensure the agent sees tool descriptions that emphasize using search. We did not find a canonical reference, but this is best practice: design the MCP tools so that the AI must use them for knowledge. [Confidence: LOW]
+SECTION C: Cross-Module Communication (Phase 3 — COORDINATION)
+Q6. MongoDB Change Streams: MongoDB 8.2 Community does not support Change Streams; they require a replica set/Atlas (and our instance is standalone by default). If we run mongod as a replica set (possible even locally), Change Streams become available. With 7.6 GB RAM, a single-node replica set is fine; overhead is minimal (small oplog, similar mem usage). So yes, if you restart MongoDB as a one-node replica set, you can use Change Streams to watch for new LifeOS documents and trigger Flex actions. This is more real-time and efficient than polling. Example overhead: negligible CPU; some disk for oplog. It's doable on an EC2 with 2 vCPU/7.6 GB.
+
+Q7. n8n as orchestrator: n8n is capable of orchestrating flows via triggers (e.g. webhooks, polling). It can subscribe to MongoDB changes if you set up a connector, or more commonly poll at intervals. For real-time, n8n may have higher latency (seconds) but can work for human-scale tasks. n8n can also call webhooks/tools. There are examples of n8n orchestrating workflows (MCP servers or APIs) in production for small teams. Limitations: n8n is not ultra-low-latency; it’s better at event-driven or scheduled tasks. For cross-module AI pipelines (LifeOS→Flex), it can be a glue, but might feel heavy. It’s more suited for user-triggered or cron jobs than streaming events.
+
+Q8. Simple cross-module pattern (solo dev): For 6 modules, the cheapest is shared Mongo collection with polling. For example, LifeOS pushes a Mongo doc, then Flex worker polls find({lifeEvent:...}) every minute or triggered by n8n. This avoids complex setup. If you want near-real-time, enable a single-node replica set and use Change Streams with a tiny worker script. But the simplest (zero infra) is a polling loop (no extra tools). That achieves the pipeline with minimal complexity. [Confidence: MEDIUM]
+
+SECTION D: ChatGPT Custom Model & Web Bundles (Phase 4 — DISTRIBUTION)
+Q9. ChatGPT knowledge file performance: ChatGPT’s recall from uploaded files has improved (as of Mar 2026) but still relies on how well the text is presented. Current advice is to use Markdown (or HTML) with clear headings. The “HtmlRAG” finding (HTML + paragraphs yields better segmenting than one big Markdown file) still generally holds: breaking content into separate files/sections improves recall. No exact benchmarks are public, but users report that 5 vs 20 files has little effect if each file is focused. The main limit is token context (4096-8192 in GPT-4o). Recommendation: split content into smaller Markdown files (with YAML frontmatter for metadata) and upload as knowledge. [Confidence: LOW]
+
+Q10. Web bundle automation: There are few dedicated tools. Most people still script it (e.g. using Pandoc or markdown-it to combine content). One open-source option is Obsidian’s “Publish” plugin or StackEdit to package MD. Some frameworks (Hugo, MkDocs) can render static sites (which can be zipped as web bundles). But no simple one-click “MD/YAML to ChatGPT bundle” tool exists. Likely a custom Node/Python script is needed (read MD/YAML, output ChatGPT-ready docs). [Confidence: LOW]
+
+Q11. ChatGPT Assistants API vs Custom GPTs: The Assistants API (for building apps via API) is more flexible and code-centric than Custom GPTs (which are UI-based). Pricing: Assistants API uses ChatGPT API pricing (~$0.03 per 1K tokens for GPT-4o), plus developer fees; Custom GPTs are free but limited to the UI with no programmatic control. Assistants API can use knowledge files and tool calls (via “actions”), giving full automation. Currently, Assistants API has usage caps (few tens of requests per minute by default) but can be increased. Custom GPTs can’t be called programmatically except via the web UI. For a programmatic SaaS, Assistants API is the choice. It's more expensive (token costs) than a free GPT, but necessary for automation. [Confidence: LOW]
+
+SECTION E: SaaS Distribution Strategy (Phase 4 — DISTRIBUTION)
+Q12. MCP server registries: MCP servers can be published in registries like Smithery or mcp.run, which let developers discover them. These platforms allow you to list your MCP server (with a URL) for others to install into their clients. They’re gaining users but are still small communities. Success stories are limited; MCP is newer than 1 year old. It’s a possible channel (others have published their tools on these hubs), but most adoption so far comes from direct linking or GitHub (see Steve Kinney’s list of MCP servers
+). For a solo dev, focus on open-sourcing your MCP and writing good docs. Submitting to a registry could help, but it’s not a huge traffic driver yet. [Confidence: LOW]
+
+Q13. AI tool pricing models: Many AI tools use tiered pricing or usage-based. Examples: Cursor ($20/mo personal), Windsurf (approx $10-20/mo), CrewAI (enterprise custom quotes), LangGraph Cloud (not public yet), Composio (no public pricing). A modular AI platform could use a freemium per-user model (free basic, paid pro) or per-module subscription. For a solo SaaS: Start free/self-host. Later, consider usage pricing (e.g. $0.01/embedding) or per-seat monthly. Given no infrastructure cost now, you have flexibility. One approach: free for X docs/users; beyond that, a flat fee per additional module or queries. Hard to be sure – research individual tools’ docs. [Confidence: LOW]
+
+Q14. Open-core AI platform examples: A few AI frameworks are open-source (e.g. LangChain, Semantic Kernel) with commercial offerings. Success: OpenAI’s own GPT-4All (open-source GPT with a paid cloud) is an example. LangChain’s core is open, they sell hosting/enterprise. Key lesson: provide a useful free OSS core, then charge for hosted service, support, or premium features. People often keep core free if it’s easy to self-host. For LinkRight, ensuring the core (context+memory logic) is OSS, and only charging for SaaS management or proprietary modules, follows that pattern. Watch out: if core is too complex to self-host, users may not adopt. [Confidence: LOW]
