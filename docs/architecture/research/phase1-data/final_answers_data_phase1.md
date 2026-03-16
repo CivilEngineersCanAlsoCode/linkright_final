@@ -10,8 +10,8 @@ Qdrant (OSS v1.16–v1.17+): Fully open-source, supports multi-tenant namespaces
  (production ~$150/mo for 10M vectors
 ). No built-in keyword search; needs external indexing for hybrid queries. Widely supported by LangChain/LlamaIndex.
 Weaviate (v1.x OSS/Cloud): Built for hybrid (vector+keyword) search out-of-box
-. Good metadata filtering via GraphQL. Benchmarks: p50 ~22 ms @1M, 62 ms @100M
-. Recall comparable (95–98%). Cloud: sandbox free, Standard ~$25/mo
+. Good metadata filtering via GraphQL. Benchmarks: p50 approx. 22 ms @1M, 62 ms @100M
+. Recall comparable (95–98%). Cloud: sandbox free, Standard approx. $25/mo
 . Integrations with LLM frameworks and vector plugins.
 MongoDB Atlas (v8.2+ with Vector Search): Unified JSON+vector store. Hybrid queries via Atlas Search. Performance: sub-50 ms on ~15M vectors (with quantization)
 . Geared for existing MongoDB users. Very mature (enterprise-grade) but costly: ~$5K–$70K+/year in production scales
