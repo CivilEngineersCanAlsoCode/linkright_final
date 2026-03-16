@@ -751,6 +751,52 @@ This resolves the weakness noted in Section 7 about Atlas not generating embeddi
 
 ---
 
+## Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q1 MongoDB performance, Q2 hybrid cloud/local, Q3 quantization benchmarks, Q4 cost modeling
+
+### MongoDB Atlas Vector Search — Performance at Scale
+
+Independent and internal benchmarks confirm Atlas Vector Search delivers **sub-50ms latency at 15M vectors** with scalar quantization enabled:
+
+- **15.3M vectors (2048d, Voyage-3-large):** P95 latency <50ms with scalar (INT8) quantization, 90–95% recall, hundreds to thousands of QPS
+- **Pre-filter penalty:** A 3% selective filter on 15.3M vectors makes queries ~4x more expensive to maintain 90–95% recall with binary quantization. Module-level filtering (7 values = ~14% selectivity) is well above the danger zone
+- **Production cost range:** $5K–$70K+/year depending on cluster size, region, and workload. For ~10K users with ~10M vectors: expect **$500–$2,000/mo** (3-node M40 cluster ~$780/mo base + storage)
+
+### Hybrid Cloud & Local Dev Parity
+
+- **MongoDB Community 8.x** now includes `$vectorSearch` in preview (8.2+) via the `mongot` process — same syntax as Atlas
+- Run Community Edition locally for dev, Atlas in cloud for production — shared API surface
+- **Qdrant Hybrid Cloud** alternative: install Qdrant Operator on your Kubernetes, connect to Qdrant Cloud control plane, data stays on-prem
+- Simplest approach: CI/CD pipeline triggers re-index on git commit for each environment
+
+### Quantization Benchmarks
+
+| Quantization | Compression | Recall Impact | When to Use |
+|---|---|---|---|
+| **Scalar (INT8)** | ~3.75x (75% RAM savings) | ~92–96% of FP32 recall | >10M vectors where RAM is constrained |
+| **Binary (1-bit)** | ~24–32x (96–97% RAM savings) | ~90–95% with rescoring | >100M vectors, requires rerank step |
+| **None (FP32)** | Baseline | 100% | <10M vectors (LinkRight's current scale) |
+
+- **Critical finding:** 256d vectors with quantization never exceed 70% recall at high scale — stick with 1536d+ for quantized indexes
+- INT8 + re-rank matches ~96% of FP32 recall on MTEB/BEIR retrieval benchmarks
+- At 100M×768 FP32 ≈307 GB → INT8 ≈77 GB → Binary ≈9.6 GB
+
+### Cost Modeling (10K Users, ~10M Docs)
+
+| Provider | Estimated Monthly Cost | Notes |
+|---|---|---|
+| **MongoDB Atlas** | $500–$2,000+ | 3-node M40 cluster, opaque pricing, enterprise-grade |
+| **Qdrant Cloud** | $100–$300 | ~$150/mo estimated for 10M vectors (Athenic 2025) |
+| **Self-host Qdrant (AWS)** | ~$270 | c6a.xlarge 32GB (~$250) + 200GB GP3 (~$20) |
+| **Pinecone Serverless** | $200–$300 | ~$0.33/GB-mo storage + $0.00002/read |
+| **Weaviate Cloud** | $200–$250 | Per Athenic estimates |
+
+All estimates assume moderate query load, on-demand pricing. Actual costs vary by region and reserved plans.
+
+---
+
 ## Deep Research Prompt for External AI
 
 Use this prompt in Gemini Deep Research, Perplexity, or ChatGPT with web search to get the latest information:

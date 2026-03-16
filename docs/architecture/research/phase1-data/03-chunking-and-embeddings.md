@@ -732,6 +732,61 @@ Both frameworks have shifted toward **"Agentic Chunking"** — segmentation driv
 
 ---
 
+## Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q6 structured doc chunking, Q7 embedding comparison, Q8 Matryoshka embeddings, Q9 model lock-in
+
+### Q6: Structured Document Chunking — No Magic Schema-Aware Chunker
+
+**Key finding:** No mainstream "schema-aware" chunker exists. You must write custom parsers.
+
+- **YAML configs:** Parse into key/value sections using PyYAML, chunk by logical blocks (top-level fields or related key groups)
+- **Markdown with YAML frontmatter:** Split into two parts — frontmatter fields become metadata, markdown body chunked by headings/paragraphs (LlamaIndex MarkdownNodeParser handles this)
+- **CSV files:** Chunk by row — each row is one "document" or combine rows into logical records using schema-aware loaders (Pandas CSV loader)
+- **LLM-driven chunking ("agentic chunking"):** Experimental — prompt LLM to decide split points or summarize sections. Slow and non-deterministic. Not production-ready
+- **Production reality:** Teams use rule-based parsers (Tree-sitter for code, Markdown libraries, CSV readers). LlamaIndex/LangChain have various loaders but you must still define how to break content
+- **Verdict for LinkRight:** Stick with the `LinkRightChunker` pipeline (Section 4.3) — custom parsers for each content type remain the best approach
+
+### Q7: Embedding Model Comparison (Mixed English + Hinglish)
+
+| Model | Dims | Retrieval Quality | Hinglish Support | Notes |
+|---|---|---|---|---|
+| **Voyage-4-Large** | 1024 | **Best** — beats Cohere by ~4%, OpenAI by ~14% | Tested on 26 languages, romanized Hindi unlikely optimized | MoE architecture, shared embedding space |
+| **Jina-embeddings-v5** | 1024 | 71.7 NDCG@10 (#1 MTEB retrieval) | **119+ languages** including Hindi | 32K context, task-specific LoRA |
+| **Cohere embed-v4** | 1024 | Strong commercial model | English-centric, Hinglish treated as English | 128K context window |
+| **OpenAI text-embedding-3-small** | 1536 | Baseline | Not tuned for Hindi/Hinglish | 8192 context, $0.02/1M tokens |
+| **OpenAI text-embedding-3-large** | 3072 | Lagged behind Voyage/Cohere by ~10–15% | Not tuned for Hindi/Hinglish | 8192 context |
+
+**For Hinglish specifically:**
+- No public benchmarks on Hinglish retrieval — all models are mostly English-trained
+- **Transliteration strategy recommended:** Pre-process Hinglish queries by transliterating Romanized Hindi → Devanagari before embedding (boosts F1 by ≥3% with XLM-R)
+- **MuRIL** remains top performer for Indic languages: 87.3% intent accuracy, 84.2% entity F1 on code-mixed text
+- Short queries: all models excel at embedding short queries vs long docs
+
+### Q8: Matryoshka Embeddings — 256–512d Sweet Spot
+
+- Indexing at multiple dimensions (e.g., 256, 512, then full 1536) allows fast shortlist retrieval with smaller vectors and rerank with full ones
+- **HuggingFace reported: 256d + rescoring preserved ~96% of full recall**
+- 256–512 dims is a good trade-off: 4–6× smaller memory with minimal accuracy hit
+- 64–128 dims is too small; above 512 diminishing returns
+- Voyage 2026 supports 2048→512 dim multistage retrieval
+- Frameworks like LlamaIndex/LangChain allow multistage search with two indexes
+- **For LinkRight:** At current scale (<10M vectors), full 1536d is fine. Consider 512d shortlisting only if scaling to 50M+ vectors
+
+### Q9: Embedding Model Lock-In — No Shortcut
+
+- **Changing embedding models requires complete re-embedding** — vectors from model A won't align with model B
+- **Mitigation:** Store chunks/text separately (e.g., in SQL or Dolt) so you can batch re-index
+- No magic shortcut — you'll pay the API/GPU cost to re-embed all docs when switching
+- Can maintain dual indices temporarily (old + new) during transition
+- Abstraction layers (LlamaIndex/LangChain) ease swapping API calls but don't avoid reprocessing
+- Matryoshka doesn't reduce re-embedding cost — it just uses smaller vs larger dims of the same model
+- **Best practice:** Gradually migrate — re-embed frequently-accessed data first, then batch the rest
+- **For LinkRight:** At ~750K tokens total corpus, full re-embed costs <$0.10 — lock-in risk is minimal at our scale
+
+---
+
 ## Deep Research Prompt for External AI
 
 Use this prompt with a research-capable AI (e.g., ChatGPT with browsing, Perplexity, Gemini) to get the latest data:

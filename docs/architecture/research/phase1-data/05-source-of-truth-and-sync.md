@@ -703,6 +703,72 @@ A critical failure pattern documented in 2025-2026 production RAG systems:
 
 ---
 
+## Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q10 git-native vector sync tools, Q11 LlamaIndex vs LangChain ingestion, Q12 webhook architecture
+
+### Q10: Git-Native Vector Sync — Chroma Sync Is the Only Turnkey Tool
+
+**Chroma Sync (Chroma Cloud):** The only production-ready turnkey tool for git→vector sync:
+- Connects GitHub (public or private repos) to ChromaDB Cloud
+- **Diff-based incremental ingestion** — only re-embeds changed files
+- Syntax-aware code chunking via Tree-sitter
+- Markdown-aware chunking with frontmatter extraction
+- Auto-generates dense + sparse embeddings using open models (no external API keys needed)
+- Pricing: $0.04/GiB usage-based
+- **Limitation:** Only works with Chroma Cloud, not self-hosted ChromaDB or other vector DBs
+
+**No widely used open-source equivalent exists.** Teams typically roll custom scripts or CI pipelines:
+- GitHub Actions that `git pull`, compute diffs, upsert only changed docs via vector store API
+- LangChain/LangChain can help (by tracking hashes/timestamps) but lack built-in Git watchers
+- "CocoIndex" (historical) had Git support but is defunct
+
+**For other DBs:** Implement a similar pipeline — on git webhook, enqueue changed-file processing. No single OSS tool does all of this.
+
+### Q11: LlamaIndex vs LangChain for Ingestion
+
+| Capability | LlamaIndex (v1.x, 2026) | LangChain (~v0.3, 2026) |
+|---|---|---|
+| **Incremental inserts** | `index.insert(Document)`, `index.delete()` | `.add_documents()`, `.delete()` (store-dependent) |
+| **Deletion tracking** | Delete by `doc_id`, version via metadata | Depends on underlying store (Qdrant, Milvus support delete by ID) |
+| **YAML frontmatter** | Not auto-extracted — use `python-frontmatter` + custom metadata | Not auto-extracted — use custom loaders |
+| **Multi-store support** | Mature — Qdrant, Weaviate, Pinecone, Chroma, PGVector, Milvus, etc. | Mature — same breadth of backends |
+| **Git watching** | None built-in | None built-in |
+| **Production readiness** | Specialized for doc ingestion (tree/vector indices) with built-in insert/delete | More general (chains, agents) but document loaders widely used |
+
+**Key takeaway:** Both are mature. Neither automatically watches git. You must call their APIs in your code. Use whichever fits your code style. LlamaIndex is specialized for doc ingestion; LangChain is more general-purpose.
+
+### Q12: Webhook-Triggered Re-Indexing Architecture
+
+The standard SaaS pattern for vector sync:
+
+```
+GitHub Webhook → Message Queue → Worker → Embed → Upsert
+```
+
+**Detailed flow:**
+1. **Webhook:** On `git push`, GitHub calls your webhook endpoint
+2. **Queue:** Service enqueues a job (AWS SQS, Kafka, Redis Streams)
+3. **Worker:** Kubernetes pods dequeue, `git clone/fetch`, compute diffs
+4. **Chunk & Embed:** Worker chunks changed files, calls embedding API
+5. **Upsert:** Bulk-upsert into vector DB via SDK
+
+**Shadow index (blue-green) strategy** — recommended for large re-indexes:
+- Build new index in parallel while serving from old one
+- Swap an alias when new index is complete and verified
+- Prevents bad embeddings from reaching production
+
+**Key features to implement:**
+- Checkpointing progress (resume on failure)
+- Idempotency (same webhook processed twice = same result)
+- Logging and observability
+- Bulk APIs for efficiency
+
+**For LinkRight at current scale:** The full webhook→queue→worker architecture is overkill. A simple post-commit hook or CI/CD pipeline is sufficient. Scale to the full pattern only when approaching multi-user SaaS with >10K docs.
+
+---
+
 ## Deep Research Prompt for External AI
 
 > Use this prompt with a model that has web access to get the latest information:

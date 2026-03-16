@@ -776,7 +776,54 @@ collection: "vectors"
 
 ---
 
-## 13. Deep Research Prompt for External AI
+## 13. Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q1 multi-tenancy approaches per DB, Q21 security (embedding inversion, isolation, GDPR)
+
+### Multi-Tenancy Approaches Per Vector DB
+
+| Database | Primary Multi-Tenancy Pattern | Isolation Level | Notes |
+|---|---|---|---|
+| **MongoDB Atlas** | Metadata filter on `userId`/`tenantId` in shared collection | Application-level | Pre-filter narrows before ANN — efficient for <100K tenants |
+| **Qdrant** | Payload-based (filter by tenant_id) OR shard-per-tenant | Logical or physical | Tiered tenancy (v1.16) optimized for disk-efficient multi-tenant |
+| **Weaviate** | One shard per tenant with dynamic activation/deactivation | True data isolation | Built-in RBAC authorization, different vectorizer configs per tenant |
+| **Pinecone** | Namespaces (up to 100K per index on Standard+) | Namespace-level | Dramatically cheaper than metadata filtering (1 RU per 1GB namespace vs scanning all) |
+| **pgvector** | Schema-per-tenant or row-level security on tenant_id | SQL-level | Full Postgres RLS capabilities |
+| **ChromaDB** | Separate collections per tenant (manual) | Collection-level | Not built for heavy multi-tenancy |
+
+### Vector Store Security — Critical Findings
+
+**Embedding inversion attacks are real:**
+- Research shows **~92% recovery of 32-token text inputs** from embeddings alone
+- 60–80% reconstruction accuracy across broader scenarios
+- OWASP lists "Vector and Embedding Weaknesses" as **LLM08** in Top 10 for LLM Applications
+- Attackers can reconstruct names, health diagnoses, addresses from text embeddings
+
+**Best practices for multi-tenant security:**
+
+1. **One tenant per index/namespace** — no shared vectors across tenants
+2. **Strict query filtering** — all queries MUST include tenant_id filter; filter at application AND database level
+3. **Encrypt at rest** — use tenant-specific KMS keys for encryption
+4. **Encrypt in transit** — TLS for all vector DB connections
+5. **Pre-process sensitive data** — redact or tokenize PII before embedding
+6. **Access control** — row-level security on tenant_id, audit all access
+7. **GDPR compliance:**
+   - Treat embeddings as personal data (they ARE PII under GDPR)
+   - Right to deletion MUST include embeddings, not just source documents
+   - Data residency requirements apply to vector stores
+   - Support data-deletion requests by re-building affected indexes
+   - Log and audit all access for compliance
+
+**Implications for LinkRight:**
+- Resume embeddings encode personal career data — treat as PII
+- Our recommended Pattern B (shared collection + metadata filter) requires rigorous filter enforcement — a bug in filter logic could leak data across users
+- For production multi-tenant: consider Pattern A (collection-per-tenant) or dedicated namespaces for strongest isolation
+- Consider encrypted vector search (IronCore Labs "Cloaked AI") for sensitive collections
+
+---
+
+## 14. Deep Research Prompt for External AI
 
 > Use this prompt with a frontier model (GPT-4o, Claude, Gemini) that has web access to get the latest benchmarks and real-world data.
 

@@ -534,6 +534,78 @@ LinkRight currently uses OpenAI `text-embedding-3-small` (1536 dims). If hybrid,
 
 ---
 
+## Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q1 all alternative DB findings, Q4 cost comparisons, Q5 Turbopuffer details
+
+### Alternative Vector DB Performance Summary
+
+| Database | p50 Latency @1M | p50 Latency @100M | Recall | Key Strength |
+|---|---|---|---|---|
+| **Qdrant** | ~8 ms | ~24 ms | ~98% | Fastest pure-vector, native multi-tenancy |
+| **Weaviate** | ~22 ms | ~62 ms | 95–98% | Built-in hybrid (vector+keyword) search |
+| **pgvector** | ~15 ms | ~85 ms | ~96% @10M | SQL joins + vectors in one DB |
+| **pgvectorscale** | — | — | 99% @50M | **471 QPS** vs Qdrant 41 QPS (Firecrawl benchmark) |
+| **ChromaDB** | Good at low scale | Not benchmarked | — | Prototyping, <10M vectors |
+| **Milvus** | ~sub-30ms @10M | — | — | Massive scale (>100M–B vectors), multiple index schemes |
+| **MongoDB Atlas** | sub-50ms @15M | — | 90–95% | Unified JSON+vector, enterprise-grade |
+
+**Benchmark sources:** Athenic (Sep 2025), TigerData (2024), Firecrawl (2026)
+
+### Qdrant Deep Dive
+
+- **p50 ~8 ms at 1M vectors, 24 ms at 100M** with ~98% recall (Athenic benchmarks)
+- Qdrant Cloud: free 1 GB tier, Starter ~$25/mo, production ~$150/mo for 10M vectors
+- No built-in keyword search — needs external indexing for hybrid queries
+- Widely supported by LangChain/LlamaIndex
+- **Multi-tenancy:** Payload-based (filter by tenant_id), shard-based, or tiered (v1.16 disk-efficient)
+
+### Milvus / Zilliz
+
+- Designed for massive scale (>100M–B vectors)
+- Supports multiple indexing schemes (HNSW, IVF, PQ, etc.)
+- Self-hosting is complex (requires GPUs or large RAM)
+- Cloud: free 5GB then from ~$99+/mo
+- Firecrawl 2026: ~sub-30ms at 10M vectors with PQ
+- Apache 2.0 license, Zilliz Cloud is managed offering
+
+### ChromaDB Limits
+
+- Excellent for prototyping and <10M vectors
+- Not built for heavy multi-tenancy (usually one DB per user)
+- Basic metadata filters, no clustering/failover
+- OSS is free; Cloud offers small free credit and usage-based pricing (~$0.04/GB ingestion)
+
+### Turbopuffer — New Entrant
+
+| Aspect | Detail |
+|---|---|
+| **Architecture** | SSD cache + S3-backed storage, multi-tenant by design |
+| **Performance** | ~8 ms p50 for warm queries on 1M docs |
+| **Hybrid search** | Dense + BM25 built-in |
+| **Pricing** | Starts at **$64/mo** (multi-tenant "Launch" plan), scales to $4K+/mo enterprise |
+| **Self-hosting** | **Not available** — fully managed SaaS only (enterprise BYOC may exist under agreement) |
+| **Users** | Cursor, Notion, Linear |
+| **vs Qdrant/Mongo** | Simpler to use but no self-host option; you give up hosting control |
+
+### Cost Comparison at Scale (10K Users, ~10M Vectors)
+
+| Provider | Self-Hosted | Cloud Managed |
+|---|---|---|
+| **Qdrant** | ~$270/mo (AWS c6a.xlarge) | $100–$300/mo |
+| **Weaviate** | $100–$300/mo | $200–$250/mo |
+| **pgvector** | $50–$200/mo (existing Postgres) | $100–$400/mo (RDS) |
+| **Pinecone** | N/A | $200–$300/mo (linear scaling) |
+| **Turbopuffer** | N/A | From $64/mo |
+| **MongoDB Atlas** | N/A (Atlas only for vectors) | $500–$2,000/mo |
+
+### Recommendation Update
+
+For a multi-tenant SaaS: **Qdrant Cloud** (tiered tenancy) or **Weaviate Cloud** are strong choices — namespace isolation, good performance, manageable cost. MongoDB Atlas only if unified storage is key and budget allows. pgvector if already on Postgres. Turbopuffer worth evaluating for simplicity if vendor lock-in is acceptable. ChromaDB for MVP/dev only.
+
+---
+
 ## Deep Research Prompt for External AI
 
 > Use this prompt with Gemini Deep Research, Perplexity Pro, or similar tools to get the latest verified data. Copy-paste as-is.

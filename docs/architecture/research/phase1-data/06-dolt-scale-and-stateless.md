@@ -612,6 +612,86 @@ Linear's 2026 agent integration is built around **"App Users"** with a delegatio
 
 ---
 
+## Final External Research (March 2026)
+
+> **Source:** Comprehensive external research answers (21 questions), verified March 2026
+> **Scope:** Q13 Dolt 2.0, Q14 MCP architecture, Q15 ChatGPT state patterns, Q16 TOON format, Q17 branch-per-agent vs locking
+
+### Q13: Dolt 2.0 — 5x Faster, Imminent Release
+
+- Dolt 2.0 is **"on the verge of releasing"** as of March 2026
+- **5× faster on Sysbench** compared to earlier versions
+- MySQL protocol compatible (with Git semantics for commits/branches)
+- **Adaptive Encoding (NEW):** Dynamically toggles between inline encoding (small values) and address-based encoding (large TEXT/BLOB). Removes performance penalty for large text fields
+- **LD1 format retired:** ~100K lines legacy code removed, smaller binary
+- **Archive Compression:** Dictionary-based de-duplication — 30–50% additional disk savings
+- **DoltgreSQL (Postgres variant):** Reached Beta, core stability sufficient for production
+- Still lacks some legacy RDBMS features (limited JSON, no stored procedures) — check current docs for gaps
+- **Write concurrency:** Still merge-based, not lock-based. TPC-C at ~40% of MySQL throughput. For Beads (<10 writes/minute), this is irrelevant
+
+### Q14: MCP Architecture — One Server Is Fine
+
+- Can serve tasks and vectors via **one MCP server** or separate ones
+- One server can multiplex endpoints (e.g., `/mcp/tasks` for Dolt, `/mcp/search` for vector DB)
+- **TypeScript SDK is mature** (Anthropic's v1 SDK) with guides
+- Python libraries exist but have fewer examples
+- 1,000+ registered MCP servers in official registry as of March 2026
+- **Native MCP client support:** Claude Desktop/Code, Cursor, Windsurf, Xcode 26.3, **ChatGPT** (via "Connectors" — MCP over HTTPS)
+- Best practices: use official SDK, ensure TLS + auth tokens, OAuth 2.1 with PKCE for remote servers
+
+### Q15: ChatGPT State Patterns — Session-Start Load Most Reliable
+
+| Pattern | Reliability | Cost | Complexity |
+|---|---|---|---|
+| **(a) Session-start state load** | **Most reliable** | ~0.03 USD per 1K tokens for GPT-4o | Low — API call on first message |
+| (b) Persistent memory | Limited — not designed for structured DB state | Free | Low but uncontrollable |
+| (c) System prompt injection | Stale by definition | Counts against context each turn | Low |
+| (d) Webhook sync | Keeps DB in sync but doesn't feed context back | Moderate | High |
+
+**Recommendation:** Pattern (a) — pre-load task summary on session start — is most reliable for accuracy. Combine with (b) for small persistent facts. ChatGPT's persistent memory now works across ALL chats (not session-scoped), so agents can remember team hierarchies and recurring project names.
+
+**New ChatGPT capabilities (March 2026):**
+- Write-Action Confirmation: every data-modifying action triggers UI confirmation
+- Microsoft Entra ID auth support (enterprise)
+- 45s timeout and 100K char payload limit remain non-negotiable
+
+### Q16: TOON (Token-Oriented Object Notation)
+
+| Format | Token Savings vs JSON | Parsing Accuracy | Status |
+|---|---|---|---|
+| **JSON** | 0% (baseline) | 65.4% | Standard |
+| **YAML** | 16–20% | ~69.0% | Common |
+| **TOON** | **40–60%** | **70.1%** (74% in some benchmarks) | New — minimal adoption |
+
+- Uses indentation (YAML-like) + minimal quotes + table-like syntax for arrays
+- Implementations exist in **TypeScript, Python, Go, Rust, .NET**
+- Human-readable with explicit length/field headers for reliability
+- **Very new** — few production systems support it yet
+- **For LinkRight:** If token cost is critical for Beads state summaries in agent prompts, TOON can reduce consumption by 50%+. Otherwise, YAML or JSON remain standard choices
+
+### Q17: Branch-per-Agent vs Optimistic Locking
+
+| Approach | Isolation | Conflict Handling | Best For |
+|---|---|---|---|
+| **Branch-per-Agent** | Full logical isolation | Explicit merge — cell-level conflicts if same cell modified | Disjoint work, audit trail needed |
+| **Optimistic Locking** | None — shared branch | `UPDATE ... WHERE version=old` — retry on conflict | Shared tasks, simpler code |
+
+**Branch-per-agent caveats:**
+- If two agents modify the same row/column, merge creates a cell-level conflict
+- Resolving conflicts automatically is tricky — needs "arbiter" agent or priority policies
+- **"Merge on Close" pattern:** Data lives on agent branches during work, merges to main when task marked "Done"
+
+**Optimistic locking pattern (simpler alternative):**
+```sql
+UPDATE tasks SET status='X', version=version+1
+WHERE id=Y AND version=old_version;
+-- If affected_rows=0 → someone else changed it → refetch and retry
+```
+
+**Verdict:** For Beads multi-agent coordination, **optimistic locking on a single branch is simpler** for shared tasks. Branch-per-agent works best when agents' work is mostly disjoint and you need full audit trail via commit graph.
+
+---
+
 ## Deep Research Prompt for External AI
 
 > Use this prompt with a latest-model AI (GPT-4o, Claude Opus, Gemini) to get updated data. The landscape moves fast.
