@@ -6,27 +6,27 @@ Q1. MongoDB Atlas vs Qdrant vs pgvector vs Chroma vs Weaviate vs Milvus:
 
 Qdrant (OSS v1.16–v1.17+): Fully open-source, supports multi-tenant namespaces (collections + is_tenant tiers)
 . Extremely fast: e.g. Athenic (Sep 2025) shows Qdrant p50 latency ~8 ms at 1M vectors, 24 ms at 100M
-, with ~98% recall. Qdrant Cloud has a free 1 GB tier; Starter is ~$25/mo
- (production ~$150/mo for 10M vectors
+, with approx. 98% recall. Qdrant Cloud has a free 1 GB tier; Starter is ~$25/mo
+ (production approx. $150/mo for 10M vectors
 ). No built-in keyword search; needs external indexing for hybrid queries. Widely supported by LangChain/LlamaIndex.
 Weaviate (v1.x OSS/Cloud): Built for hybrid (vector+keyword) search out-of-box
 . Good metadata filtering via GraphQL. Benchmarks: p50 approx. 22 ms @1M, 62 ms @100M
 . Recall comparable (95–98%). Cloud: sandbox free, Standard approx. $25/mo
 . Integrations with LLM frameworks and vector plugins.
 MongoDB Atlas (v8.2+ with Vector Search): Unified JSON+vector store. Hybrid queries via Atlas Search. Performance: sub-50 ms on ~15M vectors (with quantization)
-. Geared for existing MongoDB users. Very mature (enterprise-grade) but costly: ~$5K–$70K+/year in production scales
+. Geared for existing MongoDB users. Very mature (enterprise-grade) but costly: approx. $5K–$70K+/year in production scales
 . Local dev parity: Community MongoDB 8.x supports vector search in preview (2025)
 . Good for rich metadata, less specialized for pure vector QPS.
-pgvector (Postgres): If using Postgres, embed vectors as columns. Benchmarks (Athenic 2025): p50 ~15 ms @1M, 85 ms @100M
-; recall ~96% at 10 M qps. TigerData (2024) showed Postgres+pgvector (with PGVector) hitting 471 QPS vs Qdrant 41 QPS at 99% recall (50M 768d)
+pgvector (Postgres): If using Postgres, embed vectors as columns. Benchmarks (Athenic 2025): p50 approx. 15 ms @1M, 85 ms @100M
+; recall approx. 96% at 10 M qps. TigerData (2024) showed Postgres+pgvector (with PGVector) hitting 471 QPS vs Qdrant 41 QPS at 99% recall (50M 768d)
 . Self-hosted cost is just PG infra (e.g. Neon $19/mo, RDS $50+/mo)
 . Fully SQL-based hybrid possible. Scale is moderate – >50M vectors becomes slow. Widely supported in LLM frameworks via generic SQL connectors.
 ChromaDB (v0.x OSS, Cloud): Lightweight embedding store (library+daemon). Excellent for prototyping and <10M vectors
-. Not built for heavy multi-tenancy (usually one DB per user). Basic metadata filters. OSS is free; Cloud offers small free credit and usage-based pricing (~$0.04/GB ingestion
+. Not built for heavy multi-tenancy (usually one DB per user). Basic metadata filters. OSS is free; Cloud offers small free credit and usage-based pricing (approx. $0.04/GB ingestion
 ). Integrates with LlamaIndex/LangChain natively. Performance is good at low scale, but slower than specialized DBs at high QPS.
 Milvus (v3.x, Zilliz OSS/Cloud): Designed for massive scale (>100M–B vectors)
-. Supports multiple indexing schemes (HNSW, IVF, PQ, etc.), and soon hybrid search (via Pinecone or NVSearch). Mature ecosystem. Self-hosting is complex (requires GPUs or large RAM). Cloud: free 5GB then from ~$99+/mo
-. Benchmarks: Firecrawl 2026 shows Milvus with ANN can reach ~sub-30ms at 10M vectors with PQ (Titanic QPS)
+. Supports multiple indexing schemes (HNSW, IVF, PQ, etc.), and soon hybrid search (via Pinecone or NVSearch). Mature ecosystem. Self-hosting is complex (requires GPUs or large RAM). Cloud: free 5GB then from approx. $99+/mo
+. Benchmarks: Firecrawl 2026 shows Milvus with ANN can reach approx. sub-30ms at 10M vectors with PQ (Titanic QPS)
 . Integrates via Zilliz connectors and community SDKs.
 Benchmark Summary: Independent tests (Athenic, TigerData) rank Qdrant and Weaviate among fastest for pure-vector QPS
 . PostgreSQL/pgvector can deliver very high throughput in specialized setups (TimescaleDB claims ~471 QPS at 50M)
