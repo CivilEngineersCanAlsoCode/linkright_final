@@ -254,3 +254,407 @@ Ye decision personal vs SaaS se change nahi hota:
 ---
 
 *Har decision pe Y ya N bol. Jo N ho uspe baat karte hain. Lock karte hain aur BUILD karte hain.* 🐾
+
+---
+---
+
+# Phase 2 ACCESS Layer — Final Recommendations
+
+> **Same lens:** Personal-first. Free. Use what exists. SaaS baad me.
+
+---
+
+## Decision 8: MCP Server Technology
+
+### 🏆 Final Pick: **TypeScript MCP server using official @modelcontextprotocol/sdk**
+
+**Kyun TypeScript:**
+- ✅ Official MongoDB MCP server Node.js me hai — study + reuse kar sakte hain
+- ✅ Official MySQL MCP server bhi Node.js — Dolt ke liye directly use ho sakta hai
+- ✅ TypeScript SDK sabse mature hai (official Anthropic SDK)
+- ✅ IDE components ecosystem TypeScript me zyada hai
+- ✅ Agent-Mail MCP already Node.js pe hai — consistency
+
+**Kyun NAHI Python:**
+- Python SDK less mature, fewer examples
+- FastMCP (Python) exists par community smaller hai
+- Humara existing MCP (agent-mail) Node.js pe hai — ek stack rakh
+
+**SaaS note:** TypeScript → production-ready. No migration needed.
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 9: MCP Server Architecture
+
+### 🏆 Final Pick: **Ek MCP server, dual transport (stdio + HTTP), ≤15 tools**
+
+**Design:**
+- **Ek server process** jo dono transports support kare:
+  - **stdio** → Claude Code, Cursor, Windsurf, Codex (local IDE clients)
+  - **HTTP (Streamable)** → ChatGPT via Apps/Connectors
+- **Port:** 8766 (agent-mail 8765 ke baad)
+- **Tool count:** Max 15 (Cursor ka 40-tool limit hai, par kam tools = better AI performance)
+
+**Tools list (Phase 1 — minimum viable):**
+```
+1. vector_search(query, module, limit)     → MongoDB $vectorSearch
+2. beads_list(filter, status, type)         → Dolt SQL query
+3. beads_update(id, status, notes)          → Dolt SQL update
+4. beads_create(title, type, parent_id)     → Dolt SQL insert
+5. module_list()                            → List available modules
+6. module_context(module, topic)            → Vector search scoped to module
+7. lr_sync(module?)                         → Trigger re-indexing
+8. sprint_status()                          → High-level: open tasks, blockers, progress
+```
+
+**Kyun high-level tools:**
+- Research confirms: `sprint_status()` > `get_tasks() + filter() + count()`. Kam round-trips, kam tokens.
+- AI ko atomic SQL nahi dena — composite tools do jo useful context return kare
+
+**Kyun ek server (not two):**
+- Kam infrastructure. Ek codebase. Ek deploy.
+- MongoDB MCP + MySQL MCP alag se bhi exist karte hain (official) par humein custom tools chahiye jo DONO DBs se baat kare
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 10: ChatGPT Integration
+
+### 🏆 Final Pick: **Same MCP server via HTTP + ChatGPT Apps/Connectors (GA since end 2025)**
+
+**Design:**
+- ChatGPT ab MCP support karta hai via "Apps" (previously Connectors) — ye GA hai
+- Same MCP server jo IDE clients ko serve karta hai, wo ChatGPT ko bhi serve karega
+- ChatGPT HTTP+SSE use karta hai — stdio nahi. Isliye dual transport zaroori
+- **Tunnel for personal use:** ngrok ya cloudflared se EC2 ka port 8766 expose karo ChatGPT ko
+- **SaaS:** Direct public endpoint
+
+**Session-start state load:**
+- ChatGPT session start hote hi `sprint_status()` tool call karega
+- System prompt me instruction: "BEFORE responding to ANY user message, FIRST call sprint_status() to load current context"
+- Response format: YAML (proven, universal). TOON evaluate later jab LangChain integration mature ho
+
+**Kyun MCP over custom Actions:**
+- One codebase serves ALL clients (Claude, Cursor, ChatGPT)
+- No separate OpenAPI schema maintenance
+- ChatGPT MCP support GA hai — Actions eventually deprecated ho sakte hain
+
+**Backup plan:** Agar ChatGPT MCP flaky ho toh n8n webhook as fallback Action endpoint. Par pehle MCP try karo.
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 11: Context Enforcement Strategy
+
+### 🏆 Final Pick: **Tool-based RAG — MCP tools abstract all data access, raw file paths hidden**
+
+**Strategy:**
+1. MCP server me `vector_search()` aur `module_context()` tools do
+2. `read_file()` tool bilkul MAT do — ya sirf specific cases me (code editing)
+3. AI ko file paths NEVER dikhao — sirf search results dikhao with content
+4. System prompt instruction: "Always use vector_search to find relevant context. Do NOT guess file paths."
+
+**Kyun ye kaam karega:**
+- Agar AI ke paas sirf search tools hain, toh wo search hi karega (no choice)
+- Cursor bhi yehi karta hai — Turbopuffer se context pull karwata hai, raw reads nahi
+- 98% token savings vs raw file reads (research confirmed)
+
+**Exception:**
+- Code editing tools (file_write, file_edit) zaroor dena padega — par READ ke liye vector search enforce karo
+
+**SaaS benefit:** Multi-tenant security automatically milti hai — vectors me tenant isolation hai, files me nahi
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 12: Write-Back Pattern
+
+### 🏆 Final Pick: **Dolt = source of truth for tasks. "Best-effort side effects" for vectors/files.**
+
+**Write chain:**
+```
+AI calls beads_update(id, status)
+  → Dolt updated (source of truth, optimistic locking) ✅
+  → Vector re-index? NAHI (selective — only if content changes, not status)
+  → File update? NAHI (files are source for CONTENT, Dolt for TASKS)
+```
+
+**Rules:**
+- Task status changes → Dolt only. No cascade.
+- Content changes (new file, edited doc) → `lr_sync` re-indexes affected vectors
+- Vector DB is NEVER the source of truth — always rebuildable from files + Dolt
+
+**Optimistic locking:**
+```sql
+UPDATE issues SET status='done', version=version+1 
+WHERE id='lr-123' AND version=5;
+-- If 0 rows affected → conflict → retry with fresh data
+```
+
+**Kyun "best-effort" not "saga":**
+- Tu akela user hai. Saga pattern overkill hai.
+- Agar vector re-index fail ho jaye, manually `lr sync` chala de. No big deal.
+- SaaS me saga pattern add karenge jab paying users honge.
+
+### ✅ LOCK karna hai? Y/N
+
+---
+---
+
+# Phase 3 COORDINATION Layer — Final Recommendations
+
+> **Same lens.** Sabse simple pattern jo kaam kare. Extra infra mat add karo.
+
+---
+
+## Decision 13: Cross-Module Communication
+
+### 🏆 Final Pick: **MongoDB Change Streams (humara MongoDB replica set pe hai!) + n8n for orchestration**
+
+**Kyun Change Streams:**
+- ✅ Humara MongoDB already replica set mode me chal raha hai (process flags me `--replSet 7a1b66ea9370` hai)
+- ✅ Change Streams free hai Community edition me (replica set pe)
+- ✅ Real-time — polling ki zaroorat nahi
+- ✅ No extra infrastructure (Redis, NATS, Kafka ki zaroorat nahi)
+- ✅ RAM overhead minimal — ek watcher process < 50MB
+
+**Design:**
+```
+LifeOS writes new experience → MongoDB `lifeos_vectors` collection
+  → Change Stream detects insert
+  → Triggers n8n webhook → n8n orchestrates Flex content generation
+  → Flex creates LinkedIn draft → stored in `flex_vectors`
+```
+
+**n8n ka role:**
+- Change Stream → n8n webhook trigger → n8n workflow executes cross-module logic
+- Satvik n8n me comfortable hai — wo manually flows edit kar sakta hai
+- n8n scheduling bhi handle karta hai (cron, delays, retries)
+
+**Kyun NAHI Redis/NATS/Kafka:**
+- Extra service install karni padegi (disk + RAM use hoga)
+- Tu akela user hai — Change Streams sufficient hai
+- SaaS me Redis Streams ya NATS add karenge for durability + scale
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 14: Agent Coordination
+
+### 🏆 Final Pick: **Sequential agents (Satvik's preference) + MCP tool listing for discovery**
+
+**Design:**
+- Agents ek ke baad ek chalenge — parallel nahi (Satvik reviews between rounds)
+- Agent discovery: MCP server ka `module_list()` tool batayega kya modules available hain
+- Shared memory: **MongoDB + Dolt IS the shared memory.** Mem0/Zep ki zaroorat nahi.
+  - Tasks/state → Dolt (cross-session)
+  - Content/context → MongoDB vectors (cross-module)
+  - Ye DO cheezein combined = complete shared memory
+
+**Kyun NAHI CrewAI/AutoGen/LangGraph:**
+- Ye frameworks agent ORCHESTRATION ke liye hain — humein orchestration nahi chahiye (Satvik manually orchestrate karta hai)
+- Extra dependency, extra complexity, extra learning curve
+- Humara MCP server + Dolt + MongoDB = sufficient coordination layer
+
+**SaaS note:** Jab automated multi-agent workflows chahiye honge, LangGraph evaluate karna. Abhi nahi.
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 15: Shared State Design
+
+### 🏆 Final Pick: **Module owns its collection. Cross-module via explicit vector search. User profile shared.**
+
+**MongoDB collections:**
+```
+linkright DB:
+├── user_profile        → Shared (name, preferences, settings)
+├── flex_vectors        → Flex owns (LinkedIn content, drafts)
+├── sync_vectors        → Sync owns (resume, cover letters, JD matches)
+├── squick_vectors      → Squick owns (SDLC docs, PRDs, code)
+├── lifeos_vectors      → LifeOS owns (experiences, memories)
+├── autoflow_vectors    → AutoFlow owns (n8n workflow docs)
+├── lrb_vectors         → Builder owns (module templates)
+└── lr_events           → Shared (cross-module event log)
+```
+
+**Access rules:**
+- Module apni collection freely read/write kar sakta hai
+- Cross-module read: `vector_search(query, module="lifeos")` — explicit module parameter
+- Cross-module write: NAHI. Modules doosre ki collection me write nahi kar sakte.
+- `lr_events` = shared event log for cross-module triggers
+
+**Kyun ye simple model:**
+- No ACL, no RBAC, no complex permissions — tu akela user hai
+- Module isolation = collection isolation. Clean aur simple.
+- SaaS me `tenant_id` field add karenge har document me
+
+### ✅ LOCK karna hai? Y/N
+
+---
+---
+
+# Phase 4 DISTRIBUTION Layer — Final Recommendations
+
+> **Same lens.** Personal use pehle. Product distribution baad me.
+
+---
+
+## Decision 16: Web Bundle Strategy
+
+### 🏆 Final Pick: **Custom Pandoc pipeline (markdown/YAML → HTML). Keep existing Flex bundle pattern.**
+
+**Design:**
+- Tu already Flex ke liye web bundles bana chuka hai (K1-K6 HTML files)
+- Same pattern continue karo: Pandoc se markdown → HTML convert
+- `lr bundle <module>` CLI command banayenge jo automated karega:
+  1. Module ke saare files scan kare
+  2. File allocation strategy ke hisaab se group kare
+  3. Pandoc se HTML convert kare
+  4. Version stamp add kare (git hash + date)
+  5. Output: `bundles/<module>/` folder me HTML files
+
+**File allocation (proven by Satvik):**
+- 1 file per workflow (detailed steps)
+- 1 file for all agents combined
+- 1 file for frameworks + vocabulary
+- 1 file for config + schemas
+- 1 file for checklists
+- 1 file for orchestrator
+- 1 file for OpenAPI Actions schema
+
+**HTML > Markdown:** Confirmed by research — ChatGPT parses HTML sections better. Keep doing HTML.
+
+**Staleness:** Version stamp in each HTML file. ChatGPT Actions se version check possible.
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 17: MCP Client Compatibility
+
+### 🏆 Final Pick: **stdio transport primary. ≤15 tools. Test on Claude Code + Cursor first.**
+
+**Compatibility matrix:**
+| Client | Transport | Tool Limit | Priority |
+|--------|-----------|------------|----------|
+| Claude Code | stdio | Unlimited (deferred) | 🔴 HIGH |
+| Cursor | stdio | 40 tools | 🔴 HIGH |
+| ChatGPT | HTTP+SSE | Via Apps | 🟡 MEDIUM |
+| Windsurf | stdio | 100 tools | 🟢 LOW |
+| Codex | stdio | TBD | 🟢 LOW |
+
+**Testing strategy:**
+1. Build MCP server
+2. Test on Claude Code (tu yahi use karta hai)
+3. Test on Cursor
+4. ChatGPT HTTP test (ngrok tunnel)
+5. Others later
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 18: Stateless Client (ChatGPT) Strategy
+
+### 🏆 Final Pick: **Action-based state injection. YAML format. sprint_status() on session start.**
+
+**Pattern:**
+1. ChatGPT session start hota hai
+2. System prompt instruction: "FIRST call sprint_status()"
+3. MCP tool `sprint_status()` returns:
+```yaml
+sprint:
+  open_tasks: 12
+  blockers: 2
+  recent_changes:
+    - "lr-mcp-des-t1: MCP tool surface defined → closed"
+    - "lr-enforce-t1: RAG enforcement research → closed"
+  current_focus: "Phase 2 ACCESS layer — building MCP server"
+  modules_active: ["flex", "squick"]
+```
+4. ~500-1000 tokens. ChatGPT ke context me fit ho jayega.
+
+**Kyun YAML (not TOON):**
+- YAML proven hai, universal support
+- TOON abhi bahut naya hai — LangChain support claim hai par real-world adoption minimal
+- Jab TOON mature ho jaye, switch kar lenge (same data, different format)
+
+**Kyun NOT ChatGPT persistent memory:**
+- Developer-controllable nahi hai
+- Structured task hierarchy store nahi kar sakta
+- Unreliable — ChatGPT kabhi bhi forget kar sakta hai
+
+### ✅ LOCK karna hai? Y/N
+
+---
+
+## Decision 19: SaaS Distribution Strategy (FUTURE — not now)
+
+### 🏆 Final Pick: **Pehle personal use. Phir MCP registry publish. Phir ChatGPT marketplace. Phir standalone SaaS.**
+
+**Phased approach:**
+1. **NOW:** Use LinkRight personally for job switch + product building
+2. **Month 3:** Open-source core MCP server on GitHub
+3. **Month 4:** Publish on Smithery + mcp.run (MCP registries)
+4. **Month 6:** Flex module as ChatGPT Custom Model (LinkedIn AI tool)
+5. **Month 9:** Assistants API integration for programmatic access
+6. **Month 12:** Standalone SaaS website (pricing: freemium + $20/mo pro)
+
+**Pricing (future):**
+- Free tier: 1 module, 100 files, basic features
+- Pro: $20/mo (unlimited modules, priority support)
+- Enterprise: Custom (on-prem, SSO, dedicated instance)
+
+**Ye decision abhi LOCK nahi karunga** — ye future planning hai. Market conditions change honge. Par direction clear hai.
+
+### ✅ NOTED (not locked — future planning)
+
+---
+---
+
+# All Decisions Summary
+
+## Phase 1 DATA (LOCKED ✅)
+| # | Decision | Pick |
+|---|----------|------|
+| 1 | Vector DB | MongoDB 8.2 Community |
+| 2 | Embedding | Gemini API (FREE) |
+| 3 | Chunking | Hybrid structure-aware + 512-token |
+| 4 | Namespace | 1 collection per module |
+| 5 | Sync | `lr sync` CLI + content hashing |
+| 6 | Tasks | Dolt + single MCP + DoltHub free |
+| 7 | Architecture | MongoDB + Dolt + 1 MCP |
+
+## Phase 2 ACCESS (Lock karna hai)
+| # | Decision | Pick |
+|---|----------|------|
+| 8 | MCP Tech | TypeScript + official SDK |
+| 9 | MCP Architecture | Dual transport (stdio+HTTP), ≤15 tools |
+| 10 | ChatGPT | Same MCP via Apps/Connectors |
+| 11 | Enforcement | Tool-based RAG, hide file paths |
+| 12 | Write-Back | Dolt source of truth, best-effort side effects |
+
+## Phase 3 COORDINATION (Lock karna hai)
+| # | Decision | Pick |
+|---|----------|------|
+| 13 | Cross-Module | MongoDB Change Streams + n8n |
+| 14 | Agent Coordination | Sequential + MCP discovery |
+| 15 | Shared State | Module owns collection, explicit cross-module |
+
+## Phase 4 DISTRIBUTION (Lock karna hai)
+| # | Decision | Pick |
+|---|----------|------|
+| 16 | Web Bundles | Custom Pandoc pipeline, HTML |
+| 17 | MCP Clients | stdio primary, ≤15 tools, Claude+Cursor first |
+| 18 | Stateless | Action-based injection, YAML, sprint_status() |
+| 19 | SaaS Strategy | Personal → OSS → Registry → ChatGPT → SaaS (NOTED, not locked) |
+
+**Total extra cost: ₹0/month. Implementation: ~2-3 weeks for complete system.**
