@@ -1,172 +1,188 @@
-# Phase 1 DATA Layer — Recommendations for Decision Lock
+# Phase 1 DATA Layer — Final Recommendations
 
-> **Lens: Solve Satvik's problem FIRST. Free/open-source. Fastest to implement. SaaS comes later.**
-> 
-> Satvik's situation: Desperately needs job switch + building products fast. LinkRight is the secret sauce — use it personally first, THEN monetize. No budget for paid services right now.
+> **Lens:** Satvik ka problem pehle solve karo. Free/open-source. Fastest implementation. SaaS baad me.
 
 ---
 
-## What Already Exists (Don't Throw Away)
+## Satvik Ki Actual Situation (March 2026)
 
-Before deciding anything — what do we ALREADY have working?
-
-| Component | Status | Location |
-|-----------|--------|----------|
-| **ChromaDB** | Running, has data | `/home/ubuntu/MasterWorkspace/shipquick/data/chromadb/` (9 collections) |
-| **Dolt/Beads** | Running, 369 issues loaded | `.beads/dolt/shipquick/` |
-| **MCP configs** | Set up for Cline, Codex, Windsurf | `linkright/*.mcp.json` |
-| **Agent-Mail MCP** | Running on port 8765 | Already integrated |
-| **Git repo** | Active, pushed to GitHub | `linkright_final` |
-
-**Rule: Don't replace what works. Extend what exists.**
+| Cheez | Status |
+|-------|--------|
+| **Machine** | AWS EC2, 2 vCPU, 7.6GB RAM, 30GB disk (16GB used, 14GB free) |
+| **AWS free tier** | Sirf 30 din baaki. Uske baad Google Cloud free credits ya Oracle free tier pe shift |
+| **Budget** | Max ₹20,000/month (~$200). Claude Max subscription isme se hi hai |
+| **MongoDB 8.2.5** | ✅ ALREADY INSTALLED AUR RUNNING — mongod + mongot dono chal rahe hain |
+| **MongoDB data** | `sma` DB hai (linkedin_posts, life_experiences, sma_config), `test_vector` bhi hai |
+| **Dolt/Beads** | ✅ Running, 369 issues loaded |
+| **ChromaDB** | Hai par MongoDB already hai toh ChromaDB ki zaroorat nahi |
+| **Embedding** | Gemini API FREE use kar raha hai n8n workflows me |
+| **MCP** | Configs exist for Cline, Codex, Windsurf |
+| **Goal** | Job switch ASAP + apne products fast banana |
 
 ---
 
 ## Decision 1: Vector Database
 
-### 🏆 Recommendation: **ChromaDB (keep what you have)**
+### 🏆 Final Pick: **MongoDB 8.2 Community (jo already chal raha hai)**
 
-**Why ChromaDB NOW:**
-- ✅ Already installed and running with 9 collections
-- ✅ Free, open-source, zero cost
-- ✅ Perfect for single user with ~500 files
-- ✅ LlamaIndex + LangChain native integration
-- ✅ Python-native — matches your stack
-- ✅ No server to manage (embedded mode works fine for 1 user)
-- ✅ NEW: ChromaDB 1.5.3 has Chroma Sync for GitHub repo integration
+**Kyun MongoDB:**
+- ✅ **Already installed hai** — mongod + mongot dono running hain. Setup time = ZERO
+- ✅ **$vectorSearch support hai** — mongot chal raha hai matlab vector search ready hai
+- ✅ **Free, self-hosted** — koi paisa nahi lagega
+- ✅ **Document + Vector ek jagah** — task data, user data, vectors sab ek DB me. No split architecture needed
+- ✅ **`sma` database already hai** — linkedin_posts, life_experiences already stored
+- ✅ **Hybrid search** — $rankFusion se keyword + semantic search combine ho sakta hai
+- ✅ **Cloud migration easy** — jab SaaS banega, MongoDB Atlas pe shift karna same API hai
 
-**What changes for SaaS (LATER):**
-- Migrate to Qdrant when you have paying users and need multi-tenancy
-- ChromaDB's API is simple enough that migration = change the vector store adapter in LlamaIndex
-- All embeddings can be re-generated from stored text (Decision 5 handles this)
+**Kyun NAHI ChromaDB:**
+- MongoDB already hai aur chal raha hai. ChromaDB extra dependency hai
+- ChromaDB me document storage alag se manage karna padega, MongoDB me sab ek jagah
 
-**Why NOT switch to Qdrant now:**
-- Extra setup time for zero benefit at 1 user
-- One more service to run on your EC2
-- Qdrant solves multi-tenant problems you DON'T have yet
+**Kyun NAHI Qdrant abhi:**
+- Extra service install karni padegi, extra RAM lagega (already 2.7GB used out of 7.6GB)
+- 30GB disk pe ek aur DB = disk space waste
+- Single user ke liye Qdrant ki multi-tenancy ki zaroorat nahi
 
-### Decision needed: **Keep ChromaDB for now, plan Qdrant migration for SaaS? Y/N**
+**SaaS upgrade path:** MongoDB Community → MongoDB Atlas (same API, same queries, zero code change)
+
+### ✅ LOCK karna hai? Y/N
 
 ---
 
 ## Decision 2: Embedding Model
 
-### 🏆 Recommendation: **OpenAI text-embedding-3-small (1536d)**
+### 🏆 Final Pick: **Gemini Embedding API (FREE — jo tu already use kar raha hai)**
 
-**Why:**
-- $0.02/1M tokens — your entire codebase (~2MB text) costs < $0.10 to embed
-- Practically free at your scale
-- Best ecosystem support — works everywhere
-- Matryoshka support (can store at 512d to save ChromaDB space)
+**Kyun Gemini:**
+- ✅ **FREE hai** — zero cost. Tu already n8n me use kar raha hai
+- ✅ **gemini-embedding-001 / text-embedding-005** — quality achhi hai (68.32 MTEB retrieval score)
+- ✅ **3072 dimensions** — OpenAI 3-small (1536d) se zyada rich representation
+- ✅ **No extra API key cost** — Google AI Studio free tier sufficient hai
+- ✅ **Multilingual** — Hinglish handling better than OpenAI for Indian languages
 
-**Why not local models:**
-- Your EC2 has no GPU. Running nomic-embed-text on CPU = slow
-- At $0.10 per full re-index, API is cheaper than the time you'd spend setting up local inference
+**Kyun NAHI OpenAI text-embedding-3-small:**
+- $0.02/1M tokens — chota amount hai par jab FREE option available hai toh kyun pay karein?
+- Satvik already Gemini embeddings use kar raha hai n8n me — consistency maintain rakhein
 
-**SaaS upgrade path:** Switch to Voyage-4-Large or Jina-v5 when quality matters more than cost (i.e., paying users).
+**Kyun NAHI local models:**
+- EC2 pe GPU nahi hai. CPU pe embedding slow hoga
+- Gemini API free hai toh local ka kya fayda?
 
-### Decision needed: **Lock OpenAI text-embedding-3-small? Y/N**
+**SaaS note:** Jab paid users aayenge, Voyage-4-Large ya OpenAI 3-large pe switch kar sakte hain for better quality. Abhi FREE se kaam chalao.
+
+### ✅ LOCK karna hai? Y/N
 
 ---
 
 ## Decision 3: Chunking Strategy
 
-### 🏆 Recommendation: **Hybrid — structure-aware + 512-token fallback**
+### 🏆 Final Pick: **Hybrid — structure-aware parsing + 512-token fallback**
 
-Same as before. This doesn't change based on personal vs SaaS:
+Ye decision personal vs SaaS se change nahi hota:
 
-1. **Markdown**: LlamaIndex `MarkdownNodeParser` (split by headings, frontmatter → metadata)
-2. **YAML**: Custom parser (chunk by top-level keys)
-3. **CSV**: Row-per-document
-4. **Code**: Tree-sitter (function/class level)
-5. **Fallback**: `RecursiveCharacterTextSplitter` at 512 tokens
+1. **Markdown files** → LlamaIndex `MarkdownNodeParser` (headings se split, YAML frontmatter → metadata)
+2. **YAML configs** → Custom parser (PyYAML se top-level keys pe chunk)
+3. **CSV files** → Row-per-document (har row = ek chunk)
+4. **Code files** → Tree-sitter (function/class level)
+5. **Fallback** → `RecursiveCharacterTextSplitter` 512 tokens, 50-token overlap
 
-**Implementation time:** ~1 day to write parsers + test on your actual files.
+**Implementation time:** ~1 din parsers likhne me + test karne me
 
-### Decision needed: **Lock hybrid chunking? Y/N**
+### ✅ LOCK karna hai? Y/N
 
 ---
 
 ## Decision 4: Namespace Design
 
-### 🏆 Recommendation: **One ChromaDB collection per module**
+### 🏆 Final Pick: **Ek MongoDB collection per module + metadata filtering**
 
-**Why collection-per-module (not metadata filtering):**
-- ChromaDB works best with separate collections (it's designed this way)
-- You have 6 modules → 6 collections. Easy to manage.
-- Cross-module query = query multiple collections (ChromaDB supports this)
-- Clean isolation — Flex can't accidentally pollute Sync's context
-
-**Metadata schema for every vector:**
-```yaml
-content_type: "agent"       # agent|workflow|config|template|knowledge|checklist
-file_path: "agents/content-strategist.md"
-section_id: "## Strategy"
-git_hash: "abc123"
-tags: ["linkedin", "content"]
+**Design:**
+- `linkright` database me 6 collections: `flex_vectors`, `sync_vectors`, `squick_vectors`, `lifeos_vectors`, `autoflow_vectors`, `lrb_vectors`
+- Har vector document ka schema:
+```json
+{
+  "_id": "auto",
+  "content": "actual text chunk",
+  "embedding": [0.1, 0.2, ...],
+  "metadata": {
+    "module": "flex",
+    "content_type": "agent",
+    "file_path": "agents/content-strategist.md",
+    "section": "## Strategy",
+    "git_hash": "abc123",
+    "tags": ["linkedin", "content"],
+    "updated_at": "2026-03-16"
+  }
+}
 ```
+- Cross-module query chahiye? → Multiple collections pe $vectorSearch chalao
 
-**SaaS change:** When migrating to Qdrant, switch to single-collection-per-user + metadata filtering (Qdrant handles this better than ChromaDB).
+**Kyun collection-per-module:**
+- MongoDB me collection = natural isolation boundary
+- Vector search index per collection hota hai
+- Clean separation — Flex ka data Sync me mix nahi hoga
 
-### Decision needed: **Lock collection-per-module in ChromaDB? Y/N**
+**SaaS change:** Collection naming convention change hoga: `{user_id}_flex_vectors`. Ya single collection + `tenant_id` filter.
+
+### ✅ LOCK karna hai? Y/N
 
 ---
 
 ## Decision 5: Source of Truth & Sync
 
-### 🏆 Recommendation: **Files = source. CLI sync command. Store raw text in Dolt.**
+### 🏆 Final Pick: **Files = source of truth. `lr sync` CLI command. Raw text MongoDB me store.**
 
-**For personal use, you don't need webhooks/queues. You need:**
-1. `lr sync` CLI command that:
-   - Scans all module files
-   - Hashes each file (content hash)
-   - Compares with stored hashes in Dolt
-   - Re-embeds ONLY changed files
-   - Upserts to ChromaDB
-   - Removes vectors for deleted files
-2. Raw text of each chunk stored in Dolt (protects against model lock-in)
-3. Run `lr sync` manually or via git post-commit hook
+**Flow:**
+1. Tu apne markdown/YAML/CSV files edit karta hai git repo me
+2. `lr sync` command chalata hai (ya git post-commit hook se auto)
+3. Script:
+   - Saari module files scan karta hai
+   - Har file ka content hash nikalta hai
+   - Dolt me stored hash se compare karta hai
+   - Sirf changed files ko re-chunk + re-embed karta hai (Gemini API se)
+   - MongoDB me vectors upsert karta hai
+   - Deleted files ke vectors remove karta hai
+4. Raw text Dolt me bhi store hota hai (model switch ke liye backup)
 
-**Why this is enough:**
-- You push to git → run `lr sync` → vectors updated. Done.
-- No message queue. No webhook server. No infrastructure.
-- Total implementation: ~2 days
+**Kyun ye approach:**
+- Simple. Ek command. No webhook, no queue, no infra
+- Tu akela user hai — real-time sync ki zaroorat nahi
+- Content hash reliable hai — git hook se zyada stable
 
-**SaaS upgrade:** Add GitHub webhook → SQS → worker when you have users with their own repos.
+**Implementation:** ~2 din
 
-### Decision needed: **Lock CLI sync + raw text in Dolt? Y/N**
+### ✅ LOCK karna hai? Y/N
 
 ---
 
 ## Decision 6: Beads/Dolt Access Strategy
 
-### 🏆 Recommendation: **Keep Dolt. Build one MCP server for everything. Skip DoltHub for now.**
+### 🏆 Final Pick: **Dolt rehne do. Ek MCP server banao jo tasks + vectors dono expose kare. DoltHub free tier for backup.**
 
-**The design:**
-1. **Dolt stays** — already working, 369 issues loaded, MySQL-compatible
-2. **One MCP server** exposing BOTH task tools AND vector search tools:
-   - `beads_list` / `beads_update` / `beads_create` → Dolt queries
-   - `vector_search` / `vector_add` → ChromaDB queries
-   - `module_list` / `agent_context` → file system reads
-3. **ChatGPT access**: Same MCP server + Express route for Actions (when needed)
-4. **Concurrency**: Optimistic locking (you're the only user — conflicts are rare)
-5. **Backup**: `dolt push` to DoltHub free tier (100MB, plenty for task data) OR just git commit the Dolt dir
+**Design:**
+1. **Dolt** — already running, 369 issues loaded. Kuch change nahi
+2. **Ek MCP server** (TypeScript ya Python) jo expose kare:
+   - `beads_list` / `beads_update` / `beads_create` → Dolt SQL queries
+   - `vector_search` → MongoDB $vectorSearch
+   - `module_context` → File system reads
+   - `lr_sync_status` → Last sync info
+3. **DoltHub free tier** (100MB free, tera DB < 5MB) — `dolt push` for backup
+4. **Concurrency** — Optimistic locking (tu akela hai, conflicts nahi honge)
 
-**Why NOT DoltHub Pro ($50/mo):**
-- Free tier gives 100MB. Your task DB is < 5MB. 100MB is plenty.
-- $50/mo for backup when `dolt push` to free tier works = waste
+**Kyun ek MCP server:**
+- Kam infrastructure. Ek process, ek port
+- Claude Code, Cursor, Windsurf sab ek config se connect
+- Agent-mail MCP already port 8765 pe hai — naya server 8766 pe chalega
 
-**Why one MCP server (not two):**
-- Less infrastructure. One process. One port. One config per IDE.
-- You already have agent-mail MCP running. Add tools to it or create one new server.
+**Cost: $0** (DoltHub free tier sufficient hai)
 
-### Decision needed: **Lock Dolt + single MCP server + free DoltHub? Y/N**
+### ✅ LOCK karna hai? Y/N
 
 ---
 
-## Decision 7: Architecture
+## Decision 7: Overall Architecture
 
-### 🏆 Recommendation: **Split, but minimal — ChromaDB + Dolt, one MCP server**
+### 🏆 Final Pick: **MongoDB (vectors + documents) + Dolt (tasks) + Ek MCP server**
 
 ```
 ┌──────────────────────────────────┐
@@ -177,53 +193,64 @@ tags: ["linkedin", "content"]
        ▼          ▼          ▼
 ┌────────────────────────────────┐
 │     LinkRight MCP Server       │
-│  (TypeScript or Python)        │
+│     (port 8766)                │
 │                                │
 │  Tools:                        │
-│  - vector_search  → ChromaDB   │
+│  - vector_search  → MongoDB    │
 │  - beads_list     → Dolt       │
 │  - beads_update   → Dolt       │
 │  - module_context → Files      │
 │  - lr_sync        → Embed+Store│
 └──────┬────────────┬────────────┘
        │            │
-  ┌────┴────┐  ┌───┴─────┐
-  │ChromaDB │  │  Dolt   │
-  │(vectors)│  │ (tasks) │
-  │ FREE    │  │  FREE   │
-  └─────────┘  └─────────┘
+  ┌────┴──────┐ ┌──┴─────┐
+  │ MongoDB   │ │  Dolt  │
+  │ 8.2.5     │ │(Beads) │
+  │ vectors + │ │ tasks  │
+  │ documents │ │        │
+  │ FREE      │ │ FREE   │
+  └───────────┘ └────────┘
 ```
 
-**Total cost: $0/mo** (only OpenAI embedding API calls, < $1/mo at your scale)
+**Total monthly cost: ₹0 extra** (sirf Claude subscription jo already hai)
+- MongoDB: FREE (self-hosted, already running)
+- Dolt: FREE (self-hosted, already running)
+- Gemini Embedding: FREE (Google AI Studio)
+- DoltHub: FREE (100MB tier)
+- MCP Server: FREE (self-hosted)
 
-**Implementation priority:**
-1. Build MCP server with basic tools (~3-4 days)
-2. Build `lr sync` CLI (~2 days)
-3. Test with Claude Code + Cursor (~1 day)
-4. Start using it for actual work
+**Implementation timeline:**
+| Step | Time | What |
+|------|------|------|
+| 1 | 1 din | `lr sync` CLI — file scanning + hashing + Gemini embed + MongoDB upsert |
+| 2 | 2 din | MCP server — basic tools (vector_search, beads_list, beads_update) |
+| 3 | 1 din | Chunking parsers — markdown, YAML, CSV |
+| 4 | 1 din | Test with Claude Code + Cursor |
+| **Total** | **~5 din** | **Working system** |
 
-**~1 week to a working system.**
+**30-din AWS constraint ke baad:**
+- MongoDB + Dolt + MCP server sab Oracle Free Tier ya Google Cloud free credits pe shift kar sakte hain
+- Oracle free tier me 24GB RAM + 200GB disk milta hai FOREVER — MongoDB easily chalega
+- Google Cloud $300 free credit for 90 days — usse bhi kaam chal jayega
 
-### Decision needed: **Lock this architecture? Y/N**
-
----
-
-## Summary: All 7 Decisions (Personal-First)
-
-| # | Decision | Pick | Cost | Implementation |
-|---|----------|------|------|---------------|
-| 1 | Vector DB | **ChromaDB** (existing) | $0 | Already done |
-| 2 | Embedding | **OpenAI 3-small** | ~$0.10/re-index | 1 hour |
-| 3 | Chunking | **Hybrid structure-aware** | $0 | 1 day |
-| 4 | Namespace | **1 collection per module** | $0 | 1 hour |
-| 5 | Sync | **CLI sync + Dolt text store** | $0 | 2 days |
-| 6 | Tasks/State | **Dolt + single MCP server** | $0 | 3-4 days |
-| 7 | Architecture | **ChromaDB + Dolt + 1 MCP** | $0 | Combined above |
-
-**Total cost: ~$0/mo** (embedding API < $1/mo)
-**Time to working system: ~1 week**
-**SaaS migration later: ChromaDB→Qdrant, add webhook sync, add REST API**
+### ✅ LOCK karna hai? Y/N
 
 ---
 
-*Go through each. Y or N. Let's lock and BUILD.*
+## Summary — Sab Decisions Ek Jagah
+
+| # | Decision | Final Pick | Cost | Time |
+|---|----------|-----------|------|------|
+| 1 | Vector DB | **MongoDB 8.2 Community** (already running) | ₹0 | 0 |
+| 2 | Embedding | **Gemini API** (already using, FREE) | ₹0 | 0 |
+| 3 | Chunking | **Hybrid structure-aware + 512-token** | ₹0 | 1 din |
+| 4 | Namespace | **1 collection per module** in MongoDB | ₹0 | 1 hr |
+| 5 | Sync | **`lr sync` CLI + content hashing** | ₹0 | 2 din |
+| 6 | Tasks | **Dolt + single MCP server** | ₹0 | 3 din |
+| 7 | Architecture | **MongoDB + Dolt + 1 MCP** | ₹0 | Combined |
+
+**Grand total: ₹0 extra per month. ~5 din me working system.**
+
+---
+
+*Har decision pe Y ya N bol. Jo N ho uspe baat karte hain. Lock karte hain aur BUILD karte hain.* 🐾
