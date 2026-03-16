@@ -1156,6 +1156,64 @@ db.lr_vectors.aggregate([
 
 ---
 
+## External Research Findings (March 2026)
+
+> Sources: Gemini Deep Research + Q&A synthesis from `phase1-data/final_answers_data_phase1.md`
+
+### MongoDB Change Streams — Replica Set Requirement
+
+- **MongoDB Change Streams ONLY work with replica sets** — standalone `mongod` instances do NOT support them
+- **Our MongoDB IS a replica set** — confirmed from process flags (single-node replica set configuration)
+- This means Change Streams are available for near-real-time event-driven coordination without additional setup
+- Alternative for non-replica-set setups: polling with `find({timestamp: {$gt: lastChecked}})`
+
+### n8n as Orchestration Backbone — Limitations
+
+- n8n is good for **scheduled and event-driven** workflows (cron triggers, webhook triggers, database polling)
+- n8n is **NOT suitable for ultra-low-latency** coordination (sub-second response times)
+- For low-latency needs, use direct MongoDB Change Streams or a dedicated event bus
+
+### Simplest Cross-Module Pattern (Solo Dev)
+
+- **Simplest (zero infra)**: Shared MongoDB collection + polling loop — Module A writes a doc, Module B polls `find({event: ...})` every minute or via n8n schedule
+- **Near-real-time (no extra tools)**: Enable single-node replica set → use Change Streams with a small worker script
+- **Key insight**: For 6 modules on a single EC2, avoid overengineering — shared MongoDB is sufficient
+
+### SaaS-Scale Event Bus Options
+
+- **NATS**: "The messenger built for scale and sanity" — ideal for low-latency pub/sub across modules/regions
+- **Redis Streams**: Best for persistent message logs and consumer groups — reliable delivery with replayability
+- Both are overkill for personal/solo use but are the right graduation path for multi-tenant SaaS
+
+### Cross-Module Communication Pattern
+
+Recommended pattern from research:
+
+```
+1. Module A (e.g., Content Creation) finishes work
+2. NATS Publish: Module A publishes `content.draft.ready` event
+3. Redis Stream Record: Event recorded in stream for auditability
+4. Module B (e.g., Workflow Automation) consumes event → triggers review task
+```
+
+For solo dev, simplify to:
+```
+1. Module A writes event doc to MongoDB `lr_events` collection
+2. n8n polls `lr_events` every N minutes (or Change Stream triggers n8n webhook)
+3. n8n routes to appropriate Module B workflow
+```
+
+### Git-Vector Sync Architecture
+
+- **Webhook-Queue-Worker pattern** recommended for SaaS:
+  1. Git Webhook → HTTP POST to LinkRight API
+  2. Durable Queue (Redis Streams or NATS) → ensures no updates lost
+  3. Worker pulls tasks, does `git diff` to identify modified files
+  4. Only changed files are re-embedded; deleted files trigger vector removal via metadata filters
+- For solo dev: simplified version using n8n + git hooks instead of full queue infrastructure
+
+---
+
 ## Deep Research Prompt — Coordination Layer
 
 Use this prompt with a deep research model (Claude, Gemini Deep Research, Perplexity Pro) to get current 2026 information:

@@ -717,6 +717,86 @@ Items marked [NEEDS VERIFICATION]:
 
 ---
 
+## External Research Findings (March 2026)
+
+> Sources: Gemini Deep Research + Q&A synthesis from `phase1-data/final_answers_data_phase1.md`
+
+### Knowledge File Format Validation
+
+- **HTML > Markdown still holds** for ChatGPT knowledge files (confirmed March 2026)
+- ChatGPT recall has improved but still depends on clear text presentation with headings
+- Current advice: break content into separate focused files with clear section structure
+- The HtmlRAG finding (HTML + semantic paragraphs yields better segmenting) remains valid
+- 5 vs 20 files has little effect if each file is focused — quality > quantity
+
+### Web Bundle Builder Tools
+
+- **No dedicated "MD/YAML → ChatGPT bundle" tools** exist as of March 2026
+- Most practitioners use **custom Pandoc scripting** (exactly what LinkRight already does)
+- Alternative options: Obsidian Publish plugin, Hugo/MkDocs for static rendering
+- A custom Node/Python script remains the recommended approach (read MD/YAML, output ChatGPT-ready HTML docs)
+
+### Assistants API vs Custom GPTs
+
+- **Assistants API > Custom GPTs for programmatic SaaS** — confirmed by research
+- Assistants API: uses ChatGPT API pricing (~$0.03 per 1K tokens for GPT-4o), supports knowledge files + tool calls ("actions"), full automation capability
+- Custom GPTs: free but limited to UI, no programmatic control, cannot be called via API
+- Assistants API has usage caps (few tens of requests/min default, can be increased)
+- **For LinkRight SaaS path**: Assistants API is the required choice for automation
+
+### MCP Distribution Channels
+
+- **Smithery** and **mcp.run** confirmed as leading MCP distribution channels
+- These platforms let developers list MCP servers for others to install into their clients
+- Still small communities — MCP is newer than 1 year old
+- Most adoption currently comes from direct linking or GitHub
+- For solo dev: focus on open-sourcing MCP server + good docs; registry submission is low-effort/low-traffic but worth doing
+
+### TOON Framework Adoption
+
+- **TOON supported in LangChain v0.2.8+** and **Semantic Kernel** via built-in serializers
+- Achieves 30-60% token savings while increasing model accuracy
+- Benchmark data:
+
+| Payload Type | JSON Tokens | TOON Tokens | Savings | Accuracy |
+|---|---|---|---|---|
+| User List | 49 | 26 | 47% | 73.9% (vs 69.7% JSON) |
+| Log Data | 172 | 71 | 59% | Higher |
+| Analytics | 10,977 | 6,340 | ~42% | 86.6% (vs 83.2% JSON) |
+
+### Branch-per-Agent Pattern (Dolt)
+
+- **Branch-per-agent is practical** — each agent gets its own Dolt branch, implements "PR workflow for data"
+- **Cell-wise merge** in Dolt: if two agents modify different tasks, merge is seamless; same task → conflict marker → LLM-based resolution
+- Significantly more robust than optimistic locking (which would simply fail and require full retry)
+
+### Vector Database Cost Comparison (SaaS Scale)
+
+- **Turbopuffer**: Cheapest SaaS option — **~$85/mo for 10M vectors** (object-storage-first architecture at $0.02/GB)
+- Pinecone Serverless: ~$180/mo (2.1x Turbopuffer)
+- Qdrant Cloud: $450-800/mo (5.3-9.4x)
+- Self-hosted Qdrant: $3,000+/mo (35x, DevOps burden)
+- MongoDB Atlas: $5K-70K/yr (5.8-82x)
+- Turbopuffer's namespace-per-tenant model allowed Cursor to save 95% on storage costs
+
+### Pricing Model Insights
+
+- **Cursor**: $20/mo (credit-based), hobby tier free
+- **Industry trend**: Shifted from flat per-seat to **credit/usage-based** in 2025-2026
+- **Open-core model validated**: LangChain core is OSS, charges for hosting/enterprise (LangSmith $39/seat/mo)
+- **Key lesson**: Provide useful free OSS core, charge for hosted service, support, or premium features
+- If core is too complex to self-host, users won't adopt
+
+### Security Consideration for SaaS
+
+- Text recovery from embeddings is a **viable threat** — successful inversion rates reaching 92% for short text inputs
+- Multi-tenant SaaS requires:
+  - **Metadata pre-filtering**: tenant_id enforced at query plan level
+  - **Burn-After-Use (BAU)**: Ephemeral session contexts auto-destroyed after session ends
+  - Short-lived, scoped OAuth tokens for vector/task access
+
+---
+
 ## Deep Research Prompt — Distribution Layer
 
 ```

@@ -1747,6 +1747,60 @@ This is simpler than a full saga and sufficient for personal-first, single-user 
 
 ---
 
+## External Research Findings (March 2026)
+
+> Sources: Gemini Deep Research + Q&A synthesis from `phase1-data/final_answers_data_phase1.md`
+
+### MCP Protocol & Transport Updates
+
+- **MCP spec version**: Latest stable is **2025-03-26** (as of March 2026)
+- **Two primary transports**: stdio (JSON-RPC over stdin/stdout) and **Streamable HTTP** (HTTP POST for client→server, optional SSE for server→client)
+- Most IDE clients (Claude Code, Cursor, Windsurf, Codex) use **stdio** — they launch the MCP server as a subprocess
+- ChatGPT (via Connectors/Apps) uses **HTTP+SSE** — cannot use stdio
+- **Dual-mode server**: The same MCP server CAN serve Claude (stdio) AND ChatGPT (HTTP) simultaneously — run both transports from one codebase
+
+### Existing MCP Server Implementations
+
+- **MongoDB official MCP Server** (Node.js) EXISTS — open-source, connects to local MongoDB, read-only by default
+- **MySQL MCP Server** (Node.js) EXISTS — can point at Dolt's MySQL port
+- **FastMCP (Python)** example available from OpenAI's docs
+- In general, **TypeScript/Node MCP servers are more mature** than Python libraries (official Mongo, Supabase, Postgres, MySQL servers all exist with good docs)
+
+### SDK Maturity Assessment
+
+- **TypeScript SDK**: More mature for building complex, interactive MCP interfaces ("MCP Apps") and IDE-specific UI components
+- **Python SDK**: Better for data pipeline integration
+- For LinkRight, TypeScript is recommended to leverage the growing IDE component ecosystem
+
+### Tool Design Best Practices
+
+- **High-level tools recommended**: Expose outcome-oriented tools like `track_current_sprint_progress(team_id)` instead of atomic tools like `get_user`, `list_tasks`, `get_status`
+- This reduces LLM round-trips, minimizing token consumption and latency
+- **Tool-based RAG design pattern**: Use tools as the enforcement mechanism for retrieval-first architecture
+
+### ChatGPT MCP Support
+
+- **ChatGPT MCP via Apps/Connectors is GA** (end 2025)
+- Uses HTTP+SSE transport (not stdio)
+- Free/Plus subscribers: availability of custom MCP server URLs in Developer Mode still needs verification per plan tier
+
+### Context Enforcement Patterns
+
+- **Cursor uses Turbopuffer** for context retrieval — forces retrieval-first architecture by design
+- **Tool-based RAG enforcement**: The MCP tool itself enforces that context is retrieved before the agent can act — the tool IS the retrieval mechanism
+- **Action-Based State Injection** for ChatGPT statelessness:
+  - Session Start: Agent calls an Action to retrieve "State Summary" from task database
+  - Real-Time Sync: Every decision/task update pushed back via webhook actions → Dolt remains source of truth
+  - This enables starting a task in Cursor and finishing in ChatGPT with full state awareness
+
+### TOON Framework Support
+
+- TOON is supported by built-in serializers in **LangChain v0.2.8+** and **Semantic Kernel**
+- Achieves 30-60% token savings while increasing model accuracy
+- Recommended for task list serialization before context injection
+
+---
+
 ## Deep Research Prompt — ChatGPT Actions + Enforcement + Write-Back
 
 > Research the following questions about ChatGPT Actions, context enforcement, and write-back patterns as of March 2026, providing specific version numbers, code examples, and verified facts:
