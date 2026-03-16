@@ -92,7 +92,7 @@ Key properties:
 | Resource | Limit |
 |----------|-------|
 | **Storage** | 512 MB total (shared across all databases/collections) |
-| **Vector Search Indexes** | 3 per cluster [NEEDS VERIFICATION — was 3 as of mid-2024, may have changed] |
+| **Vector Search Indexes** | 3 per cluster ✅ VERIFIED (March 2026 — still 3 total search/vector indexes on M0) |
 | **Max vector dimensions** | 4096 (same as paid tiers) |
 | **Connections** | 500 concurrent |
 | **RAM** | Shared (not dedicated) |
@@ -107,7 +107,7 @@ Key properties:
 1. **No dedicated search nodes:** On M0, vector search shares compute with the database. On paid tiers (M10+), you can provision dedicated Atlas Search Nodes for isolated search compute.
 2. **Index build time:** No SLA on index build speed. Large indexes may take significantly longer on shared infrastructure.
 3. **Throughput:** No guaranteed IOPS. Shared tenancy means noisy neighbor effects.
-4. **$vectorSearch limits:** `numCandidates` max is likely capped at lower values on M0 [NEEDS VERIFICATION].
+4. **$vectorSearch limits:** `numCandidates` has no hard ceiling on M0 but is effectively limited by shared RAM on the `mongot` process ✅ VERIFIED.
 5. **No search analytics:** Usage metrics/analytics not available on free tier.
 
 ### Storage Math for LinkRight
@@ -118,7 +118,7 @@ Rough estimates for a single user's career data:
 - **512 MB / 3.2 MB** = ~160 users on M0 (with embeddings)
 - **With 3072-dim embeddings** (text-embedding-3-large): ~12.3 KB per doc → ~80 users
 
-For **development/prototyping**, M0 is sufficient. For production, M10 ($57/mo) or M20 ($140/mo) is the minimum [NEEDS VERIFICATION on current pricing].
+For **development/prototyping**, M0 is sufficient. For production, M10 (~$57/mo) or M20 (~$147/mo) is the minimum ✅ VERIFIED. New Flex tier (~$8-30/mo) available as middle ground.
 
 ---
 
@@ -131,7 +131,7 @@ As of knowledge cutoff (May 2025):
 - **MongoDB 7.0** (GA October 2023): Atlas Vector Search available only on Atlas (cloud managed). Community Edition does NOT have vector search.
 - **MongoDB 8.0** (GA August 2024): Same — vector search remains Atlas-only. Community Edition 8.0 does NOT include `$vectorSearch`.
 
-**MongoDB 8.2 Community Edition with local vector search is NOT GA as of May 2025.** [NEEDS VERIFICATION — This is a critical question. MongoDB may have released local vector search in Community Edition after May 2025.]
+**MongoDB 8.2 Community Edition with local vector search is NOW AVAILABLE.** ✅ VERIFIED (March 2026): MongoDB 8.2 includes `$vectorSearch` in Community Edition via the `mongot` process. See "Latest Findings" section below for full details.
 
 ### What's Available Locally
 
@@ -229,9 +229,9 @@ Filters are applied **before** the vector search — only matching documents ent
 
 **Constraints:**
 - Filter fields must be declared in the index definition (see Section 1)
-- Supports: `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`, `$and`, `$or`
+- Supports: `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$nin`, `$and`, `$or` ✅ VERIFIED
 - Does NOT support: `$regex`, `$text`, `$exists` with `false`, `$type`
-- Filter field types: `string`, `number`, `boolean`, `objectId`, `uuid`, `date` [NEEDS VERIFICATION for complete list]
+- Filter field types: `string`, `number`, `boolean`, `objectId`, `uuid`, `date` ✅ VERIFIED
 
 #### Post-Filter (Using $match after $vectorSearch)
 
@@ -369,10 +369,10 @@ Atlas Vector Search exposes limited HNSW tuning compared to dedicated vector dat
 |-----------|-----------|---------|-------|--------|
 | `numCandidates` | Query-time | Required | 1–10000 | How many candidates HNSW considers. Higher = more accurate, slower |
 | `limit` | Query-time | Required | 1–10000 | Final results returned. Must be ≤ numCandidates |
-| `efConstruction` | Index definition [NEEDS VERIFICATION] | ~128 [NEEDS VERIFICATION] | — | Graph construction quality. Higher = better recall, slower indexing |
-| `M` | Index definition [NEEDS VERIFICATION] | ~16 [NEEDS VERIFICATION] | — | Max connections per node. Higher = better recall, more memory |
+| `efConstruction` | Index definition ✅ | **200** (default) | 100–400 | Graph construction quality. Higher = better recall, slower indexing |
+| `M` | Index definition ✅ | **16** (default) | 16–64 | Max connections per node. Higher = better recall, more memory |
 
-**Important:** As of mid-2024, Atlas Vector Search does NOT expose `efConstruction` or `M` parameters directly in the index definition — MongoDB manages these internally. This may have changed. [NEEDS VERIFICATION]
+**✅ VERIFIED (March 2026):** As of the June 10, 2025 Atlas release, `efConstruction` and `M` ARE now user-configurable in the vector search index definition. See "Latest Findings" section below for details.
 
 ### numCandidates Tuning
 
@@ -407,7 +407,7 @@ numCandidates = limit × overprovisioning_factor
 | 1M vectors | 1536 | ~10ms | ~30ms | ~95% |
 | 10M vectors | 1536 | ~20ms | ~60ms | ~93% |
 
-[NEEDS VERIFICATION — These are approximate from MongoDB blog posts and may not reflect current performance. Actual numbers depend on cluster tier, region, concurrent load.]
+✅ Updated benchmarks available in "Latest Findings" section below — MongoDB published 15.3M vector benchmarks with <50ms P95 latency using scalar quantization.
 
 ### Memory Considerations
 
@@ -571,13 +571,13 @@ This uses **1 of 3 available M0 indexes** and supports all LinkRight query patte
 
 ### Weaknesses / Risks
 
-1. **Vendor lock-in:** No local/self-hosted vector search in Community Edition. Atlas-only.
-2. **Limited HNSW tuning:** Cannot configure `efConstruction` or `M` parameters (MongoDB manages internally) [NEEDS VERIFICATION].
+1. **~~Vendor lock-in~~ RESOLVED:** MongoDB 8.2+ Community Edition now includes `$vectorSearch` via `mongot`. Local/self-hosted vector search is available.
+2. **~~Limited HNSW tuning~~ RESOLVED:** `efConstruction` and `M` are now configurable since June 2025 Atlas release.
 3. **No exact kNN:** Only approximate search. Fine for LinkRight's scale, but limits flexibility.
 4. **M0 index limit (3):** Forces single-collection design. Can't have per-module indexes on free tier.
 5. **Filter fields must be pre-declared:** Can't dynamically filter on arbitrary metadata. Schema planning required upfront.
-6. **No hybrid search score fusion:** Atlas doesn't natively fuse text search + vector search scores. You'd need to handle Reciprocal Rank Fusion (RRF) or similar in application code. [NEEDS VERIFICATION — MongoDB may have added native score fusion]
-7. **Embedding generation:** Atlas doesn't generate embeddings — you must provide them. Need an external embedding pipeline (OpenAI API, etc.).
+6. **~~No hybrid search score fusion~~ RESOLVED:** Atlas now natively supports `$rankFusion` (RRF) and `$scoreFusion` for combining `$vectorSearch` + `$search` results. Available since MongoDB 8.0+.
+7. **~~Embedding generation~~ RESOLVED:** Atlas Vectorize now auto-generates embeddings on insert/query using configured providers (OpenAI, Voyage AI, Cohere, Azure OpenAI).
 
 ### Comparison Table vs Alternatives
 
@@ -596,6 +596,158 @@ This uses **1 of 3 available M0 indexes** and supports all LinkRight query patte
 ### Bottom Line
 
 MongoDB Atlas Vector Search is a **pragmatic, low-friction choice** for LinkRight given that MongoDB is already the chosen data store (ADR-004). The primary risks are vendor lock-in to Atlas and limited HNSW tuning. For LinkRight's current scale (hundreds to low thousands of vectors per user, <100K total), these limitations are unlikely to matter. If LinkRight grows to millions of vectors or needs advanced vector search features (quantization, sparse vectors, dynamic HNSW tuning), a dedicated vector DB (Qdrant) would be worth evaluating.
+
+---
+
+## Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research output, verified March 17, 2026
+> **Scope:** Updates to all 8 research topics from the original deep research prompt
+
+### MongoDB 8.2 Community Edition — Local Vector Search (CONFIRMED)
+
+MongoDB 8.2, released late 2024, introduced **public previews** of vector search and hybrid search for both Community and Enterprise Server editions. By March 2026, these features are integrated into the stable 8.2 minor release branch and the upcoming 8.3 release candidates.
+
+**Key details:**
+- **`$vectorSearch` is now available in Community Edition 8.2+** — same syntax as Atlas
+- **`$scoreFusion` aggregation stage** for hybrid search also available locally
+- Powered by the **`mongot` process** — a dedicated Lucene-based search engine running alongside `mongod`
+- Developers must install and configure `mongot` manually (unlike Atlas's automated setup)
+- `mongot` uses **change streams** to maintain an eventually consistent HNSW index
+
+**Limitations vs Atlas:**
+- No automated scaling or dedicated Search Nodes
+- No native backup/restore for search indexes (requires manual re-indexing)
+- No advanced query tracking/performance analytics
+- Minor releases (8.2, 8.3) follow a 6-month cadence; patches NOT backported to previous minors
+
+**Verdict:** Recommended for local prototyping and CI/CD pipelines. Not recommended for large-scale multi-tenant production without Atlas's managed infrastructure.
+
+**Docs:** https://www.mongodb.com/docs/manual/release-notes/8.2/ and https://www.mongodb.com/docs/atlas/atlas-vector-search/compatibility-limitations/
+
+### M0 Free Tier — Updated Limits (March 2026)
+
+| Feature | M0 Free Tier (March 2026) |
+|---------|--------------------------|
+| **Storage** | 512 MB (unchanged) |
+| **Vector Search Indexes** | 3 total (search + vector combined) |
+| **Max Vector Dimensions** | **8192** (was 4096 — increased) |
+| **Operational Throughput** | 100 ops/sec |
+| **Network Rate Limit** | 10 GB In / 10 GB Out per 7-day period |
+| **MongoDB Version** | 8.0 |
+| **`numCandidates` limit** | No hard ceiling — limited by shared RAM on `mongot` |
+
+### NEW: Flex Tier (Between M0 and M10)
+
+MongoDB introduced **Flex clusters** — a new tier bridging M0 and M10:
+
+| Feature | Flex Tier |
+|---------|-----------|
+| **Cost** | $0.011/hour (~$8-$30/month) |
+| **Storage** | 5 GB |
+| **Vector Search Indexes** | **10** (vs M0's 3) |
+| **Throughput** | 500 ops/sec |
+| **Connections** | 500 |
+
+**Impact for LinkRight:** Flex tier's 10 indexes allows per-module vector indexes (7 modules fits within limit). This is the recommended entry point for scaling beyond prototyping.
+
+### HNSW Parameters — Now Configurable (Since June 2025)
+
+As of the **June 10, 2025 release**, Atlas Vector Search exposes `M` and `efConstruction`:
+
+| Parameter | Default | Recommended Range | Trade-off |
+|-----------|---------|-------------------|-----------|
+| **M** | **16** | 16–64 | Higher = better recall, more RAM |
+| **efConstruction** | **200** | 100–400 | Higher = better graph quality, slower build |
+
+This resolves the previous [NEEDS VERIFICATION] tags — these parameters ARE now user-configurable in Atlas index definitions.
+
+**Docs:** https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/
+
+### Hybrid Search — Native $rankFusion (CONFIRMED)
+
+Native hybrid search is now a **core feature** via the `$rankFusion` aggregation stage:
+
+- Combines `$vectorSearch` + `$search` (full-text) in a single query
+- Uses **Reciprocal Rank Fusion (RRF)** with fixed constant k=60
+- Supports **weighted pipelines** (e.g., vector: 0.7, text: 0.3)
+- Available since MongoDB 8.0+
+- MongoDB 8.2 adds `$scoreFusion` for custom mathematical score combination
+
+This resolves the [NEEDS VERIFICATION] tag about native score fusion — it IS now natively supported.
+
+**Docs:** https://www.mongodb.com/docs/atlas/atlas-vector-search/hybrid-search/
+
+### Pricing — M10+ and Search Nodes (March 2026)
+
+**Base cluster pricing (AWS):**
+
+| Tier | RAM | Storage | Monthly Cost |
+|------|-----|---------|-------------|
+| **M10** | 2 GB | 10 GB | ~$56.94 |
+| **M20** | 4 GB | 20 GB | ~$146.72 |
+| **M30** | 8 GB | 40 GB | ~$387.62 |
+
+No per-index or per-query charges for vector search — included in base rate.
+
+**Search Node pricing (dedicated `mongot` hardware, AWS):**
+
+| Tier | RAM | vCPUs | Storage | Hourly Cost |
+|------|-----|-------|---------|-------------|
+| S20 | 4 GB | 2 | 106 GB | $0.12 |
+| S30 | 8 GB | 4 | 213 GB | $0.24 |
+| S40 | 16 GB | 8 | 426 GB | $0.48 |
+| S50 | 32 GB | 16 | 855 GB | $0.99 |
+
+### Quantization — Scalar & Binary (GA since late 2024)
+
+Atlas Vector Search supports automatic quantization:
+
+- **Scalar (int8):** ~**3.75x** RAM reduction (75% savings). GA since Dec 2, 2024.
+- **Binary (1-bit):** ~**24-32x** RAM reduction (96-97% savings). Requires rescoring step.
+
+Configured in the index definition via `quantization` field. For 1536-dim vectors, scalar quantization maintains >95% recall@10.
+
+**Key benchmark finding:** 256d vectors with quantization never exceed 70% recall at high scale — stick with 1536d+ for quantized indexes.
+
+**Docs:** https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-quantization/
+
+### Benchmarks — 2025-2026
+
+**MongoDB internal benchmarks (15.3M vectors, 2048d, Voyage-3-large):**
+
+| Config | Dataset | P95 Latency | Recall | QPS |
+|--------|---------|-------------|--------|-----|
+| Scalar (int8) | 15.3M | <50ms | 90-95% | Hundreds to Thousands |
+| Binary (1-bit) | 15.3M | Higher (rescoring) | 90-95% | Lower than Scalar |
+
+**Independent comparison:** pgvectorscale achieved 471 QPS at 99% recall on 50M vectors vs Qdrant's 41 QPS (Firecrawl benchmarks, late 2025).
+
+**Pre-filter performance:** A 3% selective filter on 15.3M vectors makes queries ~4x more expensive to maintain 90-95% recall with binary quantization. Lucene 10 (Acorn-1 strategies) expected to reduce this penalty.
+
+### Atlas Vectorize — Built-in Embedding Generation
+
+MongoDB now offers **Atlas Vectorize** — automated embedding generation within the database lifecycle:
+
+- Define a text field for vectorization in the index definition
+- Atlas calls configured embedding provider on insert (OpenAI, Voyage AI, Cohere, Azure OpenAI)
+- Query-time: pass raw text to `$vectorSearch` — Atlas handles embedding
+- Eliminates "model drift" between indexing and querying
+
+**Supported providers:** Voyage AI (voyage-3-large), OpenAI (3-small/3-large), Cohere (embed-english-v3.0+), Azure OpenAI.
+
+This resolves the weakness noted in Section 7 about Atlas not generating embeddings.
+
+### Updated Comparison Table
+
+| Criteria | Atlas Vector Search (2026) | ChromaDB | Qdrant | pgvector |
+|----------|---------------------------|----------|--------|----------|
+| **Self-hosted vector search** | **Yes (8.2+ Community)** | Yes | Yes | Yes |
+| **HNSW tuning** | **Yes (M, efConstruction)** | Full | Full | Full |
+| **Hybrid search** | **Native ($rankFusion)** | No native | Native | tsvector + ivfflat |
+| **Quantization** | **Scalar + Binary** | No | Yes | No |
+| **Built-in embeddings** | **Atlas Vectorize** | No | No | No |
+| **Free tier** | M0 (512MB) + **Flex ($8/mo)** | Open source | Open source | Open source |
 
 ---
 

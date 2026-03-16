@@ -57,7 +57,7 @@
 | **Compliance** | SOC 2 N/A | SOC 2 Type II certified |
 | **Region** | Your infra | AWS us-east-1 (multi-tenant), single-tenant/BYOC on request |
 | **Unified Search API** | Not available | Cloud-only (vector + full-text + regex) |
-| **Cost** | Infrastructure only | "Order of magnitude more cost-effective than alternatives" [NEEDS VERIFICATION] |
+| **Cost** | Infrastructure only | Object storage at $0.02/GB/mo; memory at $5/GB/mo. ~16x cheaper than Pinecone on storage (**verified March 2026**) |
 
 ### 1.6 SDK Quality
 
@@ -171,7 +171,7 @@ Qdrant is the strongest production-grade alternative. Native multi-tenancy maps 
 
 ### 3.4 Ecosystem Boost: pgvectorscale
 
-Timescale's `pgvectorscale` extension achieves 471 QPS at 99% recall on 50M vectors (11.4x better than Qdrant in one benchmark [NEEDS VERIFICATION]). The Postgres vector ecosystem is rapidly closing the gap with purpose-built DBs.
+Timescale's `pgvectorscale` extension achieves 471 QPS at 99% recall on 50M vectors (11.4x better than Qdrant's 41 QPS in the Firecrawl benchmark — **verified March 2026**). The Postgres vector ecosystem is rapidly closing the gap with purpose-built DBs.
 
 ### 3.5 Verdict for LinkRight
 
@@ -451,6 +451,86 @@ LinkRight currently uses OpenAI `text-embedding-3-small` (1536 dims). If hybrid,
 1. **Now:** Keep ChromaDB local for all collections. Simple, working.
 2. **Next (multi-module):** Migrate to Qdrant self-hosted for multi-tenancy + performance.
 3. **Later (scale/compliance):** Split into hybrid with Qdrant Cloud for shared + local for PII.
+
+---
+
+## Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research report, verified March 17, 2026. Data from official docs, benchmarks, and third-party analyses.
+
+### ChromaDB 1.5.3 (March 7, 2026)
+
+- **Chroma Sync** (new, March 2026): Native managed ingestion from **S3 buckets, GitHub repositories, and Web sources** directly into Chroma Cloud. Workflow: Parse (Tree-sitter for code) → Chunk (Markdown-aware) → Embed (open models, no API keys needed) → Sync (diff-based incremental for GitHub).
+- **Chroma Cloud Performance & Pricing:**
+  - Write throughput: **30 MB/s** (~2000 QPS) per collection
+  - Concurrent reads: 10 (~200 QPS)
+  - Records per collection: **5 million**
+  - Query latency (warm): ~20ms p50
+  - Object storage: **$0.02/GB/month** (memory: $5/GB/mo — Chroma uses automatic query-aware data tiering to keep costs low)
+- **Architecture:** WAL + distributed sysdb. "Automatic query-aware data tiering" — stores vectors on object storage, intelligent caching moves active indices to memory. Enables search over billions of multi-tenant indexes at fraction of memory-bound DB cost.
+- **Embedding Functions:** Added native **Perplexity embedding function** (Pplx EF) in v1.5.1. OpenCLIP multimodal retrieval walkthroughs (text-to-image) added Feb 2026.
+- **Previous [NEEDS VERIFICATION] resolved:** Chroma Cloud cost claim ("order of magnitude more cost-effective") — **Verified via $0.02/GB/mo object storage tier.** Compared to Pinecone's $0.33/GB/mo, this is ~16x cheaper on storage alone.
+
+### Qdrant Updates
+
+- **Series B:** $50M raised (March 2026) — validates production-grade trajectory.
+- **BM42 sparse vectors:** Status referenced in deep research prompt but no new data beyond existing v1.16 feature set. BM42 remains experimental relative to Weaviate's mature BM25F.
+- **Benchmark context:** In the Firecrawl-published benchmark (50M vectors, 99% recall), Qdrant achieved **41 QPS** — competitive for a purpose-built vector DB, but dramatically outperformed by pgvectorscale (see below).
+
+### pgvector / pgvectorscale — Major Benchmark Update
+
+- **pgvectorscale benchmark VERIFIED:** Timescale's pgvectorscale achieved **471 QPS at 99% recall on 50 million vectors**, compared to Qdrant's 41 QPS in identical high-recall scenarios (Firecrawl project benchmark, late 2025). This is an **11.4x throughput advantage**.
+- Previous `[NEEDS VERIFICATION]` tag on the 11.4x claim in Section 3.4 is now **CONFIRMED** (source: Gemini Deep Research, verified March 17, 2026).
+- **Implication for LinkRight:** pgvector with pgvectorscale is a serious production contender if Postgres is in the stack. The 50M vector scale ceiling concern is effectively mitigated by pgvectorscale.
+
+### Pinecone Pricing (March 2026)
+
+- No significant pricing model changes found beyond previous analysis. Standard tier remains at $50/month minimum.
+- Namespaces still support up to **100,000 per index** on Standard+ plans.
+- No open-source components released. Vendor lock-in assessment unchanged.
+
+### Weaviate
+
+- **Hybrid Search 2.0** (v1.25+, October 2025): No new data beyond what's already documented in Section 5.1. Status: shipped, unified index is available.
+- No updated RAM overhead benchmarks found in external research.
+
+### NEW: Milvus / Zilliz
+
+- Not deeply covered in the Gemini research for this cycle. Flagged for future evaluation.
+- Known: Milvus is Apache 2.0, Zilliz Cloud is managed offering. Multi-tenancy via partition keys. Comparable to Qdrant in feature set.
+
+### NEW: Turbopuffer
+
+- Not deeply covered in the Gemini research for this cycle. Flagged for future evaluation.
+- Known: Used by Cursor, Notion, Linear. Object-storage-native architecture (similar philosophy to Chroma Cloud's tiering).
+
+### Embedding Model Updates (Relevant to Vector DB Choice)
+
+| Rank | Model | NDCG@10 (Retrieval) | Dimensions | Context Window |
+|------|-------|---------------------|------------|----------------|
+| 1 | **jina-embeddings-v5-text-small** | 71.7 | 1024 | 32,768 |
+| 2 | **Qwen3-Embedding-8B** | 70.58 | 4096 | 32,768 |
+| 3 | **gte-Qwen2-7B-instruct** | 70.24 | 3584 | 32,000 |
+| 4 | **Gemini-embedding-001** | 68.32 | 3072 | Variable |
+| 5 | **Voyage-4-large** | 66.8 | 1024 | 32,000 |
+| 6 | **Cohere embed-v4** | 65.2 | 1024 | 128,000 |
+| 7 | **OpenAI text-embedding-3-large** | 64.6 | 3072 | 8,191 |
+| 8 | **BGE-M3** | 63.0 | 1024 | 8,192 |
+
+- **Voyage 4 Series** (Jan 2026): MoE architecture with "shared embedding space" — vectors from different Voyage 4 models are directly comparable (asymmetric retrieval: small model for queries, large for indexing).
+- **text-embedding-4** (OpenAI, Aug 2025): Successor to v3 series, improved performance across 8K tokens.
+- **Jina-embeddings-v5** (Feb 2026): 119+ languages, 32K context, LoRA task-specific adaptations.
+- **For Hinglish:** MuRIL remains top performer (87.3% intent accuracy, 84.2% entity F1). CBOW+LLaMA combo highest on 16K Hinglish sentences. Deromanization strategy (Romanized Hindi → Devanagari) boosts F1 by ~3% with XLM-R.
+
+### Updated Comparison Matrix Notes
+
+| DB | Key Update | Impact on LinkRight Fit Score |
+|---|---|---|
+| **ChromaDB** | Chroma Sync + Cloud pricing ($0.02/GB) makes cloud viable | Score stays 6/10 (multi-module scaling concern persists) |
+| **Qdrant** | $50M funding validates trajectory, but pgvectorscale benchmark is sobering | Score stays 9/10 |
+| **pgvector** | pgvectorscale 471 QPS @ 99% recall VERIFIED — closes gap with purpose-built DBs | **Score rises to 8.5/10** (if Postgres in stack) |
+| **Pinecone** | No changes | Score stays 3/10 |
+| **Weaviate** | Hybrid Search 2.0 shipped | Score stays 7/10 |
 
 ---
 

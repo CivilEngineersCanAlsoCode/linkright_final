@@ -472,6 +472,146 @@ MCP Prompts: "plan-feature", "close-with-evidence"
 
 ---
 
+## Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research output, verified March 17, 2026
+> **Scope:** Dolt 2.0, DoltHub pricing, ChatGPT Actions, MCP ecosystem, agent patterns, TOON format
+
+### Dolt 2.0 — Performance & Architecture Updates
+
+**Sysbench parity confirmed and refined:**
+
+| Metric | Multiplier vs MySQL | Notes |
+|--------|-------------------|-------|
+| **Read/Write Mean** | **0.96x** (4% faster than MySQL) | Confirmed — Dolt slightly outperforms MySQL on combined sysbench |
+| **Writes Mean** | **0.88x** (12% faster) | Content-addressed Prolly Tree avoids B-tree rebalancing overhead |
+| **TPC-C Throughput** | **~40% of MySQL** (~40 tps vs ~100 tps) | Improved from 2.47x slower to ~2.5x slower; merge-based concurrency is the bottleneck |
+
+**Dolt 2.0 storage format changes:**
+- **LD1 format retired:** ~100,000 lines of legacy code removed, smaller binary
+- **Adaptive Encoding (NEW):** Dynamically toggles between inline encoding (small values) and address-based encoding (large TEXT/BLOB values). Removes historical performance penalty for large text fields — critical for Beads task descriptions at Epic/Feature level
+- **Automated session-aware GC:** Enabled by default, prevents intermediate transaction states from consuming excessive disk
+- **Archive Compression:** Dictionary-based de-duplication in deepest storage layers — **30-50% additional disk savings**
+
+**Concurrency improvements:**
+- Still no `SELECT... FOR UPDATE` (full serializable transactions)
+- Improved cell-level conflict resolution for concurrent writes to same row
+- Uses merge logic (not row-level locking) for SQL transaction conflicts — minimizes rollback frequency in multi-agent scenarios
+
+### DoltHub Pricing — Updated Tiers (March 2026)
+
+| Plan | Monthly Cost | Private Storage | Overage | Target |
+|------|-------------|----------------|---------|--------|
+| **Free** | $0 | **100 MB** | N/A | Individuals, open data |
+| **Pro** | **$50** | **1 GB** | $1.00/GB/mo | Small teams, prototypes |
+| **Team** | $250 | 50 GB | Included | Collaborative dev teams |
+| **Enterprise** | $500+ | 250 GB | Negotiable | Large orgs |
+
+**Change from original doc:** Free tier storage limit is now documented as 100 MB (not "1GB for private repos"). Pro tier explicitly at $50/mo for 1GB.
+
+**Hosted Dolt pricing (managed, like RDS):**
+
+| Instance | CPUs | RAM | Disk | Hourly Cost |
+|----------|------|-----|------|-------------|
+| m4.xlarge | 4 | 16 GB | 500 GB | $1.53 |
+| m4.2xlarge | 8 | 32 GB | 1 TB | $3.06 |
+| r5b.2xlarge | 8 | 64 GB | 2 TB | $4.90 |
+
+Hosted Dolt now includes **Branch Permissions** in its workbench — admins can govern which agents have merge authority on main. Essential for multi-agent Beads governance.
+
+**Impact for LinkRight:** Our Beads DB at <50MB fits comfortably in the Free tier. Pro tier ($50/mo) provides 1GB with versioning history — sufficient for years of task tracking.
+
+### DoltgreSQL — Beta Status
+
+- Postgres-compatible Dolt has reached **Beta** as of late 2025
+- Core stability sufficient for production workloads
+- Gaps remain in advanced triggers and stored procedures
+- **New:** "Native Extension Support" via Go's C-integration — can load PostGIS and other Postgres extensions
+- No comprehensive CLI for version control — requires SQL functions (`SELECT DOLT_PULL()`)
+
+### ChatGPT Actions — Updated Constraints (March 2026)
+
+| Constraint | Limit | Change from Original |
+|-----------|-------|---------------------|
+| **API Timeout** | **45 seconds** | Unchanged — non-negotiable |
+| **Payload Size** | **100,000 characters** (request + response) | Confirmed |
+| **API Descriptions** | 300 characters max | New detail |
+| **Auth Methods** | OAuth 2.0, API Key, **Microsoft Entra ID** (new) | Entra ID added for enterprise |
+| **Action Count** | Dynamic (credit-based in Pro/Enterprise) | Changed from fixed limit |
+| **Write Actions** | User-facing confirmation required | New governance model |
+
+**New capabilities:**
+- **Persistent Memory:** ChatGPT Memory now persists across ALL chats — agents remember user preferences, team hierarchies, recurring project names. No longer session-scoped.
+- **Write-Action Confirmation:** Every data-modifying action triggers UI confirmation — human-on-the-loop governance
+- **"Keyless Authentication"** for managed cloud identities
+
+**Impact for LinkRight:** The 45s timeout + 100K char limit remain the hard constraints for Beads API design. Persistent Memory means ChatGPT agents can maintain awareness of the SAFe hierarchy without re-explaining each session.
+
+### MCP Ecosystem — Massive Growth (March 2026)
+
+- **1,000+ registered MCP servers** in the official registry
+- DNS verification for namespace management
+
+**Native MCP client support:**
+- Claude Desktop & Claude Code (native stdio/HTTP)
+- Cursor & Windsurf (AI-first IDEs)
+- **Xcode 26.3** (Apple — 20 built-in tools)
+- **ChatGPT** (via "Connectors" — MCP over HTTPS through secure tunnel)
+
+**Security best practices:**
+- OAuth 2.1 Authorization Code with PKCE for remote servers
+- "CIMD" (Client ID Metadata Documents) for dynamic client registration
+- "Streamable HTTP" transport for cloud instances
+
+**Notable MCP servers:** CLEO (production-grade task management for coding agents with persistent structured memory), official GitHub MCP server.
+
+**Impact for LinkRight:** ChatGPT now supports MCP via Connectors — our MCP-first strategy (Option E) now works across Claude AND ChatGPT, not just MCP-native clients. This simplifies the multi-client architecture.
+
+### TOON Format — Token-Efficient Serialization
+
+A purpose-built format for feeding structured data to LLMs:
+
+| Format | Token Savings (vs JSON) | Retrieval Accuracy | Best For |
+|--------|------------------------|-------------------|----------|
+| **JSON** | 0% (baseline) | 65.4% | API interop / storage |
+| **YAML** | 16–20% | ~69.0% | Human configs |
+| **TOON** | **40–60%** | **70.1%** | **LLM ingestion** |
+
+**How TOON works:** Combines YAML-style indentation for nesting with CSV-style tabular layouts for uniform arrays. Eliminates braces and quotes.
+
+**Impact for LinkRight:** For the Beads state summary injected into agent prompts (Option C/D), TOON can reduce token consumption by 50%+ — allowing agents to analyze twice as many tasks in the same context window. Models also achieve higher parsing accuracy with TOON vs JSON.
+
+### Linear AI — Delegation Model
+
+Linear's 2026 agent integration is built around **"App Users"** with a delegation model:
+
+- **Delegation:** Issues are "delegated" to agents — agent executes, but a human remains the final responsible party
+- **Chain of Thought Transparency:** Mobile app shows agent's real-time reasoning with ability to send steering messages
+- **Tool Optimization:** Combined `create_issue` + `update_issue` into single `save_issue` to minimize tokens and API latency
+
+**Relevance for Beads:** The delegation model (agent executes, human is responsible) aligns with our branch-per-agent pattern — agents work on branches, humans approve merges to main.
+
+### Branch-per-Agent — Published Patterns
+
+**Multi-World Isolation:** Dolt's branching is described as **"MVCC on steroids"** — each branch head is concurrency-controlled while branches remain logically separate. Content-addressed Prolly Tree storage means similar data across branches is stored only once — enabling "massive parallel forking" without storage penalties.
+
+**Merge Conflict Resolution Strategies:**
+- **Semantic Merging:** Cell-level and JSON-document merging minimizes conflicts vs line-based Git merges
+- **Coordination Roles:** "Arbiter" or "Mediator" agents resolve non-auto-mergeable conflicts based on priority policies
+- **"Merge on Close" pattern:** Data lives on isolated agent branches during development, merges to main immediately when task marked "Done" — real-time visibility for completed work, shields main from WIP noise
+
+**Comparison:**
+
+| Approach | Isolation | Conflict Handling | Auditability |
+|----------|-----------|-------------------|-------------|
+| **Branch-per-Agent** | Full (logical) | Explicit merge/diff | **High** (commit graph) |
+| CRDT-based | Eventual | Automated (non-conflict) | Low |
+| Optimistic Locking | None | Reject & retry | Medium (tx logs) |
+
+**Verdict:** Branch-per-agent is superior for Beads because every change is captured in a commit — full traceability via `dolt_diff` tables.
+
+---
+
 ## Deep Research Prompt for External AI
 
 > Use this prompt with a latest-model AI (GPT-4o, Claude Opus, Gemini) to get updated data. The landscape moves fast.

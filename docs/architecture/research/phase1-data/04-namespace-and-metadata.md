@@ -629,7 +629,7 @@ For queries that benefit from both semantic and keyword matching:
 // Step 3: Combine with $unionWith or RRF in application layer
 ```
 
-[NEEDS VERIFICATION] — Atlas may support combined vector + full-text in a single pipeline stage in newer versions. As of early 2026, most implementations use application-layer fusion.
+**VERIFIED (March 2026):** As of MongoDB 8.0/8.1, `$vectorSearch` and `$search` (full-text) CAN be combined in a single aggregation pipeline via the native `$rankFusion` stage. RRF is natively supported with a fixed smoothing constant of 60. Weights can be assigned per pipeline (e.g., vector: 0.7, text: 0.3). MongoDB 8.2 adds `$scoreFusion` for explicit mathematical score combination as an alternative to RRF.
 
 ### 9.3 Index Size and Free Tier Limits
 
@@ -737,7 +737,46 @@ collection: "vectors"
 
 ---
 
-## 12. Deep Research Prompt for External AI
+## 12. Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research report, verified March 17, 2026.
+
+### 12.1 MongoDB Pre-Filter Performance (Measured Data)
+
+- **Filter selectivity impact:** In 15.3M vector tests, a **3% selective filter** (restricting to ~500K items) made queries approximately **4x more expensive** (compute/latency) to maintain 90–95% recall when using binary quantization vs. unfiltered queries.
+- **Token-type filters:** Pre-filtering with discrete values maintains sub-100ms latency for most workloads under 10M vectors.
+- **ENN fallback:** If the filter is too restrictive, the engine switches to Exact Nearest Neighbor scan within the filtered subset — maintains sub-second latency for up to 10,000 matching documents.
+- **Future improvement:** Lucene 10 (Acorn-1 search strategies) expected to reduce the "selective filter penalty" in upcoming MongoDB 8.x patches.
+- **Implication for LinkRight:** Module-level filtering (7 values) is ~14% selectivity — well above the 3% danger zone. Compound filters on `module` + `content_type` remain safe. High-cardinality filters (e.g., `agent_id` across many agents) should be tested.
+
+### 12.2 Metadata Isolation Pattern — Confirmed Best Practice
+
+- **Pattern A (Shared Collection + Pre-filtering) confirmed as best for <100K tenants** by MongoDB architects and Gemini research. This matches our Section 10 recommendation.
+- Pinecone comparison: supports up to 100,000 namespaces per index, but MongoDB architects prefer metadata-based isolation to leverage transactional joins with other tenant data.
+- **Case study:** General Intelligence Co ("Cofounder" AI) uses LlamaIndex + MongoDB with continuous 30-minute ingestion cycles, citing lower costs than managed-only RAG solutions.
+
+### 12.3 LlamaIndex / LangChain MongoDB Integration Updates
+
+- **Hybrid search:** Both frameworks now natively support the `$rankFusion` stage (RRF) introduced in MongoDB 8.0 — single call combines semantic and keyword results.
+- **Async support:** Both integrations support full async vector search methods for non-blocking agent loops.
+- **LangChain SelfQueryRetriever:** Confirmed working with Atlas filter syntax — supports `$eq`, `$lt`, `$gt`, `$and`, `$or` operators. Note: complex array filters must be mapped to the `filter` type in the index definition.
+- **LlamaIndex Agentic Document Processing:** Evolved into durable workflows that survive crashes via DBOS integration. New features: LlamaSplit (beta, auto document sectioning), LlamaSheets (spreadsheet parsing with hierarchical headers).
+
+### 12.4 Atlas M0 / Flex Tier Limits (Verified March 2026)
+
+| Limit | M0 Free Tier | Flex Tier |
+|-------|-------------|-----------|
+| **Search Indexes** | Max 3 total | Max 10 total |
+| **Max Dimensions** | 8192 | 8192 |
+| **Storage** | 512 MB | 5 GB |
+| **Throughput** | 100 ops/sec | 500 ops/sec |
+| **Cost** | Free | ~$8-30/month ($0.011/hr) |
+
+**Recommendation update:** For LinkRight's "7 scaling to 20" module plan, start with **Flex tier** (not M0) — 10 indexes and 5GB storage provide adequate headroom. Scale to M10/M20 when approaching 50K vectors.
+
+---
+
+## 13. Deep Research Prompt for External AI
 
 > Use this prompt with a frontier model (GPT-4o, Claude, Gemini) that has web access to get the latest benchmarks and real-world data.
 

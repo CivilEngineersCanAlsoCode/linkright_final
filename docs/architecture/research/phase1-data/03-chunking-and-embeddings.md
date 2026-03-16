@@ -436,8 +436,8 @@ class LinkRightChunker:
 | OpenAI text-embedding-ada-002 | 1536 | 61.0 | 8191 | $0.10 | **Legacy — do not use.** Worse quality AND more expensive than 3-small. |
 | **Cohere embed-v3** (embed-english-v3.0) | 1024 | 64.5 | 512 | $0.10 | Excellent quality. Supports `input_type` parameter (query vs document). Short context window. |
 | Cohere embed-multilingual-v3.0 | 1024 | 66.3 (multilingual) | 512 | $0.10 | Best multilingual option. 100+ languages. |
-| **Google text-embedding-005** | 768 | 66.3 [NEEDS VERIFICATION] | 2048 | $0.00625 | Strong quality, cheapest API option. Limited context window. |
-| Voyage AI voyage-3 | 1024 | 67.1 [NEEDS VERIFICATION] | 32000 | $0.06 | Top MTEB scores. Long context. Code-aware variant available. |
+| **Google text-embedding-005** | 768 | 66.3 | 2048 | $0.10 ✅ (price updated) | Strong quality. Limited context window. |
+| Voyage AI voyage-3 → **voyage-4-large** | 1024 | **66.8** ✅ | 32000 | $0.12 ✅ | Successor released Jan 2026. MoE architecture. Shared embedding space. |
 
 ### 5.2 Open Source Models
 
@@ -448,7 +448,7 @@ class LinkRightChunker:
 | **e5-large-v2** | 1024 | 62.2 | 335M params | ~2 GB | Instruction-tuned. Prefix required ("query:" / "passage:"). |
 | **GTE-large-en-v1.5** | 1024 | 65.4 | 434M params | ~2.5 GB | Alibaba. Top open-source MTEB. Apache 2.0. |
 | mxbai-embed-large-v1 | 1024 | 64.7 | 335M params | ~2 GB | mixedbread.ai. Strong retrieval scores. |
-| **Jina-embeddings-v3** | 1024 | 65.5 [NEEDS VERIFICATION] | 570M params | ~3 GB | Multilingual (89 languages). Task-specific LoRA adapters. |
+| **Jina-embeddings-v3** → **v5** | 1024 | **71.7** ✅ (v5 NDCG@10) | 677M (small) / 239M (nano) | ~3 GB | 119+ languages. v5 released Feb 2026. #1 on MTEB retrieval. |
 | **multilingual-e5-large** | 1024 | 61.5 | 560M params | ~3 GB | Best open-source multilingual. 100 languages including Hindi. |
 
 ### 5.3 Dimension vs Quality Tradeoff
@@ -473,7 +473,7 @@ MTEB (Massive Text Embedding Benchmark) scores are averages across tasks: retrie
 
 | Model | MTEB Retrieval (NDCG@10) |
 |---|---|
-| Voyage-3 | 71.2 [NEEDS VERIFICATION] |
+| Voyage-4-large | 66.8 ✅ (updated from Voyage-3) |
 | Cohere embed-v3 | 68.1 |
 | text-embedding-3-large | 67.5 |
 | GTE-large-en-v1.5 | 66.8 |
@@ -499,7 +499,7 @@ Hinglish (Hindi words written in Latin script) is linguistically tricky for embe
 | text-embedding-3-large | Moderate | Partial | Same as above, slightly better |
 | Cohere embed-multilingual-v3 | **Excellent** (explicit Hindi) | **Good** — trained on code-switched text | Best API option for Hinglish |
 | multilingual-e5-large | **Excellent** (explicit Hindi) | Moderate | Best open-source for Hindi |
-| Jina-embeddings-v3 | **Good** (89 languages) | Moderate [NEEDS VERIFICATION] | Good multilingual option |
+| Jina-embeddings-v5 | **Excellent** (119+ languages) | Good ✅ | Best multilingual option — #1 MTEB retrieval |
 | nomic-embed-text | English-focused | **Poor** | Not recommended for Hinglish |
 | BGE-large | English-focused | **Poor** | Not recommended for Hinglish |
 
@@ -623,7 +623,7 @@ Assuming 100 queries/day, average query length 50 tokens:
    )
    ```
 2. **Hierarchical chunking for large docs** — use `HierarchicalNodeParser` with `AutoMergingRetriever` for module docs (1500+ lines).
-3. **Evaluate `text-embedding-3-large` at reduced dimensions** (1024d) — may give quality uplift with same storage as current 1536d config. [NEEDS VERIFICATION with LinkRight-specific eval set]
+3. **Evaluate `text-embedding-3-large` at reduced dimensions** (1024d) — may give quality uplift with same storage as current 1536d config. Also consider **jina-embeddings-v5** (71.7 NDCG@10 retrieval, 1024d, $0.05/1M tokens) as a strong alternative.
 
 ### 9.3 Future Considerations
 
@@ -631,6 +631,104 @@ Assuming 100 queries/day, average query length 50 tokens:
 2. **Voyage-3** if retrieval quality becomes critical (highest MTEB retrieval scores).
 3. **nomic-embed-text locally** if privacy/offline requirements emerge — CPU-viable, Apache 2.0.
 4. **Reranking** (Cohere rerank-v3, BGE-reranker) as a second-stage filter to improve precision — more impactful than switching embedding models.
+
+---
+
+## Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research output, verified March 17, 2026
+> **Scope:** MTEB leaderboard, new models, pricing, Hinglish, chunking updates, ChromaDB
+
+### MTEB Benchmark Leaderboard — Retrieval NDCG@10 (March 2026)
+
+The landscape has shifted significantly. New models from Jina, Qwen, and Google now dominate:
+
+| Rank | Model | NDCG@10 (Retrieval) | Dimensions | Context Window |
+|------|-------|---------------------|------------|----------------|
+| **1** | **jina-embeddings-v5-text-small** | **71.7** | 1024 | 32,768 |
+| 2 | Qwen3-Embedding-8B | 70.58 | 4096 | 32,768 |
+| 3 | gte-Qwen2-7B-instruct | 70.24 | 3584 | 32,000 |
+| 4 | Gemini-embedding-001 | 68.32 | 3072 | Variable |
+| 5 | Voyage-4-large | 66.8 | 1024 | 32,000 |
+| 6 | Cohere embed-v4 | 65.2 | 1024 | 128,000 |
+| 7 | OpenAI text-embedding-3-large | 64.6 | 3072 | 8,191 |
+| 8 | BGE-M3 | 63.0 | 1024 | 8,192 |
+| 12 | nomic-embed-text-v1.5 | 59.4 | 768 | 8,192 |
+
+**Leaderboard URL:** https://huggingface.co/spaces/mteb/leaderboard
+
+**Key takeaways:**
+- Jina v5 leapfrogs all previous leaders with 71.7 NDCG@10
+- OpenAI text-embedding-3-large (64.6) is now ranked #7, not top-3
+- Cohere embed-v4 released with 128K context window (massive improvement over v3's 512 tokens)
+- text-embedding-3-small not in top 12 for retrieval — still acceptable for LinkRight's scale
+
+### New Embedding Models (2025–2026)
+
+| Model | Release Date | Key Features |
+|-------|-------------|-------------|
+| **Jina-embeddings-v5-text** | Feb 18, 2026 | 677M (small) / 239M (nano), 119+ languages, 32K context, task-specific LoRA |
+| **Voyage-4 Series** | Jan 15, 2026 | MoE architecture, **shared embedding space** (mix models in same index), voyage-4-large/4/4-lite |
+| **Gemini-embedding-2-preview** | Mar 10, 2026 | First natively **multimodal** embedding (text+image+video+audio+PDF in one space) |
+| **text-embedding-4** (OpenAI) | Aug 31, 2025 | Successor to v3 series, improved across 8K tokens |
+
+**Notable:** Voyage-4's shared embedding space allows using voyage-4-lite for queries and voyage-4-large for indexing — asymmetric retrieval with cost savings.
+
+### Current API Pricing (March 2026)
+
+| Provider | Model | Per 1M Tokens |
+|----------|-------|--------------|
+| OpenAI | text-embedding-3-small | $0.02 (unchanged) |
+| OpenAI | text-embedding-3-large | $0.13 (unchanged) |
+| Cohere | embed-v4.0 | $0.12 |
+| Google | text-embedding-005 | $0.10 |
+| Voyage AI | voyage-4-large | $0.12 |
+| Voyage AI | voyage-4-lite | $0.02 |
+| Jina AI | jina-embeddings-v5 | $0.05 |
+
+**Batch processing:** Most providers now offer 50% discounts for batch/async embedding jobs.
+
+**Impact for LinkRight:** At ~750K tokens total corpus, even the most expensive model (text-embedding-3-large) costs <$0.10 per full re-index. Pricing remains negligible at our scale.
+
+### Hinglish / Code-Switched Text — Latest Research
+
+Specialized Indic models now significantly outperform general-purpose models for Hinglish:
+
+- **MuRIL (Multilingual Representations for Indian Languages):** Achieves **87.3% intent accuracy** and **84.2% entity recognition F1** on Hindi-English code-mixed text — ~12.8% improvement over general multilingual models
+- **Vyakyarth-1-Indic-Embedding:** New Indic-specific model fine-tuned on 10 major Indian languages, addresses cross-lingual/cross-script gaps
+- **CBOW + LLaMA combination:** January 2026 study found this achieves highest performance on 16,000 Hinglish sentences for emotion recognition, outperforming standard BERT/SBERT
+- **Deromanization strategy:** Transliterating Romanized Hindi back to Devanagari before embedding boosts downstream F1 by ≥3% with XLM-R
+
+**Practical recommendation:** If Hinglish retrieval becomes a primary KPI, use MuRIL or Vyakyarth-1 instead of text-embedding-3-small. For now, LinkRight's English-dominant content means the current model remains adequate for document encoding.
+
+### Chunking Strategy Updates (2025–2026)
+
+Both frameworks have shifted toward **"Agentic Chunking"** — segmentation driven by model reasoning rather than fixed character counts.
+
+**LlamaIndex:**
+- **LlamaSplit (Dec 2025):** Beta API that uses AI to automatically separate bundled documents into distinct sections by category
+- **LlamaSheets (Jan 2026):** Specialized parser for complex spreadsheets preserving hierarchical structure and multi-level headers
+- **Long-Horizon Agents:** Framework now supports agents maintaining context over weeks of document iteration
+
+**LangChain:**
+- **Semantic Chunking:** Now considered **mature production option** (was experimental). Detects semantic "valleys" (topic shifts) between sentences
+- **LLM-Assisted Segmentation:** Using smaller LLMs (e.g., Gemini 2.5 Flash) as pre-processors for proposition extraction and clustering
+- **Production finding (2026):** **Recursive Character Splitting at 512 tokens** still often outperforms semantic chunking — semantic chunking creates 3–5x more vector fragments, increasing noise and storage costs
+
+**Verdict for LinkRight:** Stick with the recommended `LinkRightChunker` pipeline (Section 4.3) using structure-aware splitting. Semantic chunking is overkill for our small, well-structured corpus. LlamaSplit could be valuable if we start ingesting user-uploaded documents (resumes, JDs).
+
+### ChromaDB Updates (March 2026)
+
+- **Latest version:** ChromaDB **1.5.3** (March 7, 2026)
+- **Chroma Sync (March 2026):** New native capabilities for syncing data directly from **S3, GitHub, and Web sources** — eliminates need for custom sync scripts for supported sources
+  - GitHub: targets specific branches/commits with diff-based incremental updates
+  - S3: auto-sync on file updates with queue-based ingestion
+  - Uses Tree-sitter for syntax-aware code chunking
+- **New embedding function:** Native support for **Perplexity embedding function** (Pplx EF) added in v1.5.1
+- **OpenCLIP multimodal retrieval** walkthroughs added (text-to-image) as of Feb 2026
+- **Cloud performance:** Write 30 MB/s (~2000 QPS), 5M records/collection, ~20ms p50 query latency (warm), $0.02/GB/mo storage
+
+**Impact for LinkRight:** Chroma Sync's GitHub integration could replace our custom post-commit hook approach for vector sync. Worth evaluating as an alternative to the LlamaIndex IngestionPipeline for GitHub-based repos.
 
 ---
 

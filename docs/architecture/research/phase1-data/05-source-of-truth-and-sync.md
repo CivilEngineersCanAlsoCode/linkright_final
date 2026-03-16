@@ -605,6 +605,104 @@ lr embed --files path/to/file1.md path/to/file2.yaml
 
 ---
 
+## Latest Findings (March 2026 — External Research)
+
+> **Source:** Gemini Deep Research output, verified March 17, 2026
+> **Scope:** LlamaIndex/LangChain sync updates, new tools, git-native patterns, ChromaDB sync, production lessons
+
+### LlamaIndex IngestionPipeline — 2026 State
+
+The three `docstore_strategy` modes remain unchanged (`UPSERTS`, `DUPLICATES_ONLY`, `UPSERTS_AND_DELETE`), but execution has been drastically improved:
+
+- **Parallelized ingestion** with remote caching (e.g., `RedisKVStore` as `IngestionCache`) for distributed worker clusters
+- **New persistence pattern:** `pipeline.persist()` / `pipeline.load()` replaces manual docstore serialization. Saves entire pipeline state (transformation cache + docstore mapping) to `./pipeline_storage/` by default
+- **ChromaDB atomic updates:** When docstore detects content change, pipeline handles deletion of old Chroma vectors before inserting new ones — prevents the "duplicate result" problem
+- **Agentic Document Processing:** LlamaIndex has evolved into a platform supporting durable workflows that survive crashes (DBOS integration)
+
+**Impact for LinkRight:** The `pipeline.persist()` pattern simplifies our proposed docstore management. No need to manually commit `docstore.json` to git — the pipeline handles its own state.
+
+### LangChain Indexing API — New `scoped_full` Cleanup Mode
+
+A significant addition in `langchain-core 0.3.25`:
+
+| Cleanup Mode | Scope of Deletion | Use Case |
+|---|---|---|
+| `None` | No automatic deletions | Archival ingestion |
+| `incremental` | Deletes old versions of updated docs based on hash | High-frequency updates without source removal |
+| `full` | Deletes anything not in current batch | Complete directory mirroring (requires full sweep) |
+| **`scoped_full`** (NEW) | Deletes absent docs **only within the source IDs in current batch** | **Partial re-indexing of specific folders/projects** |
+
+**Why this matters:** `scoped_full` solves the "Loader Amnesia" problem — you can re-index just a subset of files (e.g., one module's docs) while correctly cleaning up deleted files within that subset, without affecting other modules' vectors.
+
+**Consistency note:** Production teams report that the distributed nature (separate record manager + vector store) can cause consistency issues if a write succeeds in one but fails in the other. Standard mitigation: periodic "repair runs" in `full` mode.
+
+### New Tools & Frameworks for File→Vector Sync
+
+**Unstructured.io:**
+- Evolved from open-source parsing library to comprehensive **ETL+ platform**
+- Supports 1,250+ ingestion pipelines across 64+ file types
+- Connector architecture linking cloud sources (Azure Blob, GCS, S3, Salesforce) to vector destinations
+- Sync via hashed pointers and UUIDs — minimal database footprint
+- ~10% aggregate latency improvement in 2026 through optimized partitioning
+
+**Cognee (Memory-First Architecture):**
+- Builds a **property graph alongside the vector index** — entity extraction + relationship detection
+- v0.3 uses "clean and replace" strategy: deletes document's entire subgraph + vectors before re-ingesting
+- Rationale: even single-character changes can shift semantic alignment of subsequent chunks, making incremental chunk updates semantically inconsistent
+- Best for: systems needing entity resolution across documents
+
+**Ragflow 0.21.0:**
+- Orchestrated offline ingestion with decoupled upload/parsing stages
+- LLMs generate summaries, keywords, metadata during ingestion itself
+- Customizable RAG data pipelines within unified framework
+
+**Verdict for LinkRight:** Unstructured.io is overkill for our markdown/YAML corpus. Cognee's graph approach is interesting for future career signal entity linking but premature now. Stick with LlamaIndex IngestionPipeline.
+
+### Git-Native Sync Patterns — "Shadow Index" CI/CD
+
+A production pattern has emerged in 2026 for documentation-heavy repos:
+
+1. **Commit Detection:** GitHub Action triggers on push to main, identifies changed directories
+2. **Differential Embedding:** Containerized script loads only changed files, using git commit hash as version metadata
+3. **Sync-to-Vector:** Push new vectors to vector store (often using a **staging collection** to verify retrieval quality before production swap)
+4. **State Persistence:** Latest successfully indexed commit hash stored in persistent store (Redis/file) — next CI run only processes delta
+
+**Key insight:** The "staging collection" pattern prevents bad embeddings from reaching production. Swap is atomic — old collection replaced only after quality verification.
+
+### ChromaDB — Native Sync Capabilities
+
+**Chroma Sync (March 2026)** eliminates need for custom sync scripts for supported sources:
+
+- **GitHub integration:** Target specific branches/commits, diff-based incremental updates using Tree-sitter for code-aware chunking
+- **S3 integration:** Auto-sync on file updates with queue-based ingestion at scale
+- **Web sources:** Crawl and sync web content directly
+- Automatically generates dense + sparse embeddings using open models (no external API keys needed)
+- Data searchable within minutes of upload
+
+**Impact for LinkRight:** If we move to Chroma Cloud, Chroma Sync's GitHub integration could replace our entire custom post-commit hook + IngestionPipeline for the git→vector sync path. Worth evaluating for simplicity.
+
+### Production Lessons — "Split Truth" Problem
+
+A critical failure pattern documented in 2025-2026 production RAG systems:
+
+**The "Split Truth" / "Split Reality" problem:** Vector store and transactional database fall out of sync. Example: recruiting AI recommended candidate based on 3-year-old resume from vector store, while Postgres correctly showed candidate was no longer job-seeking.
+
+**Root cause:** "Vector Drift" — the time lag between a profile update and its re-embedding/indexing.
+
+**Solution — Deterministic Middleware Layer:**
+- Before retrieved context reaches LLM, middleware pulls latest state from SQL/primary DB
+- Injects hard constraints into system prompt (e.g., "Current Status: NOT LOOKING FOR DEV ROLES")
+- Forces LLM to override "rich but outdated" semantic data with "sparse but accurate" structured data
+
+**Production Rebuild Strategies:**
+- **Shadow Indexing:** Parallel index backfill while primary serves live traffic
+- **Traffic Ramping:** Gradually shift query % to new index to warm caches
+- **Resource Partitioning:** Partition by time/tenant for incremental rebuilds
+
+**Impact for LinkRight:** Our one-way file→vector model (Section 1, Model A) already avoids the worst "Split Truth" scenarios since files are the single source of truth. But we should still implement a freshness check — when retrieving vectors, verify the `git_commit` metadata matches the current file state.
+
+---
+
 ## Deep Research Prompt for External AI
 
 > Use this prompt with a model that has web access to get the latest information:
