@@ -1,5 +1,7 @@
 LinkRight Core Architecture Research
+
 SECTION A: Vector Database Selection
+
 Q1. MongoDB Atlas vs Qdrant vs pgvector vs Chroma vs Weaviate vs Milvus:
 
 Qdrant (OSS v1.16–v1.17+): Fully open-source, supports multi-tenant namespaces (collections + is_tenant tiers)
