@@ -1245,6 +1245,14 @@ bd update [STEP_VAR_NAME] --status in_progress --json
 ### On Step Completion
 
 ```bash
+# 1. Save Checkpoint (Mandatory)
+bd update [STEP_VAR_NAME] \
+  --notes="CHECKPOINT: Completed [step-id]. Session variables updated." \
+  --set-metadata last_completed_step=[step-id] \
+  --set-metadata session_variables='[JSON_STRING_OF_VARIABLES]' \
+  --json
+
+# 2. Close Step
 bd close [STEP_VAR_NAME] \
   --reason "[What was produced. Specific. Include key values like scores,
   counts, IDs. Never just 'done'.]" \

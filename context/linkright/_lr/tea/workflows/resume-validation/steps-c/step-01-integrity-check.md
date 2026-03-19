@@ -8,6 +8,8 @@
 
 - ✓ Input: `data/optimized-resume.md` (user-provided or pre-optimized)
 - ✓ Reference: `data/jd-profile.yaml` (P0/P1 requirements extracted)
+- ✓ Reference: `tea/data/qa-checklists.yaml` (Global System Gate)
+- ✓ Reference: `tea/data/common-bugs.md` (Infrastructure Patterns)
 - ✓ No prior step required (this is entry point for resume-validation workflow)
 
 ---

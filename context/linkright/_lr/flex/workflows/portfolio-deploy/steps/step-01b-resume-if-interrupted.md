@@ -1,133 +1,79 @@
-# step-01b: Resume if Interrupted
-
-## PRECONDITION
-🛑 NEVER execute this step without first completing `step-01-load-session-context.md`.
-✅ ALWAYS ensure that session context (user details, mode) is loaded into memory.
-
-**Agent:** lr-orchestrator
-**Phase:** Resumption check (between step-01 and step-01c)
-**Purpose:** Detect workflow interruption and resume from last checkpoint
-
+---
+stepNumber: "01b"
+title: "Resume Interrupted Session"
+phase: "Initialization"
 ---
 
-## Objective
+# Step 01b: Resume Interrupted Session
 
-If this workflow was interrupted before completion, load the last checkpoint and resume from where it stopped. Otherwise, continue to normal flow.
+**ONE SENTENCE:** Check Beads for interrupted workflow and resume or start fresh.
 
----
+## MANDATORY EXECUTION RULES
 
-## DEPENDENCIES
+- 🛑 NEVER start fresh if session in progress
+- ✅ ALWAYS check Beads first
+- 💾 Load previous state from Beads if resuming
+- 📋 YOU ARE RESUMING, not initializing new
 
-- Requires: `step-01-load-session-context.md` (completed)
-- Requires: Active Beads issue tracking this workflow
-- Requires: MongoDB workflow_history collection
+## INPUT
 
----
+- Workflow epic ID: `sync-zas.wm-8`
+- Workflow name: `portfolio-deploy`
+- User decision: continue or fresh start
 
-## INSTRUCTIONS
+## PROCESSING
 
-### 1. Check for Active Beads Issue
+### 1. Check for Existing Beads Issue
 
 ```bash
-bd list --status=in_progress --limit=1
+bd list --status=in_progress \
+  --parent=sync-zas.wm-8 \
+  --query="portfolio-deploy" \
+  --limit=1
 ```
 
-If found → Resume Flow (step 3)
-If not found → Normal Start (step 2)
+**If issue found:**
+- Display: issue ID, title, completed steps, last update time
+- Ask user: "Continue this session [1] or start fresh [2]?"
 
----
+**If user [1] - Continue:**
+- Load: `bd show <issue-id>` to get metadata
+- Extract: `last_completed_step` from metadata
+- Load: `step-[N+1]-[name].md` (next step)
+- Load: `session_variables` from metadata (context variables)
+- Proceed with next step
 
-### 2. Normal Start
+**If user [2] - Start Fresh:**
+- Create new Beads feature (in step-01-setup.md)
+- Load: `step-01-session-setup.md`
+- Fresh initialization
 
-If no prior issue:
-- Create new Beads issue for this workflow execution
-- Continue to next step
-- **Return to workflow** — do NOT continue below
-
----
-
-### 3. Resume Flow
-
-If active issue found:
-
-#### 3a. Load Last Checkpoint
-
-Query MongoDB:
-```bash
-db.workflow_history.findOne(
-  { status: "interrupted" },
-  { sort: { created_ts: -1 }, limit: 1 }
-)
-```
-
-Extract: `last_step`, `checkpoint_data`, `created_ts`
-
-#### 3b. Verify Checkpoint
-
-Check last_step file exists:
-```bash
-ls -la steps/[last_step].md
-```
-
-If missing → Start over (go to step 2)
-
-#### 3c. Log Resumption
-
-```
-═══════════════════════════════════════════════════════════
-🔄 WORKFLOW RESUMPTION
-Last Step: [last_step]
-Checkpoint Created: [created_ts]
-═══════════════════════════════════════════════════════════
-```
-
-#### 3d. Resume Execution
-
-Load and execute from `[last_step]`
-
-#### 3e. Update Beads
-
-```bash
-bd update [ISSUE_ID] --notes="
-RESUMED:
-- Last step: [last_step]
-- Progress: [X] / [total] steps
-"
-```
-
----
+**If no issue found:**
+- Load: `step-01-session-setup.md`
+- Fresh initialization
 
 ## OUTPUT
 
-Save checkpoint after each step success:
-```bash
-db.workflow_history.insertOne({
-  status: "in_progress",
-  last_step: "[current_step]",
-  checkpoint_data: {...},
-  created_ts: "[ISO_TIMESTAMP]"
-})
-```
-
----
+- Decision: continue existing or start fresh
+- Session state loaded (if continuing)
+- Next step file loaded and ready
 
 ## SUCCESS METRICS
 
-- ✅ Resumption detection works
-- ✅ Checkpoint loads correctly
-- ✅ Execution continues from last step
-- ✅ No step duplication
-- ✅ Beads issue updated
+✅ Correctly identified if issue exists
+✅ Retrieved metadata from Beads
+✅ User confirmed continue or fresh
+✅ Loaded correct next step
 
----
+## FAILURE ANTI-METRICS
 
-## NEXT STEP
+❌ Beads list command failed
+❌ No decision from user
+❌ Step file failed to load
+❌ Resuming into wrong step (N vs N+1)
 
-→ Continue from `[last_step]` or load `step-01c`
+## NEXT STEPS
 
----
-
-## See Also
-
-- `.agents/workflows/step-01b-resume-if-interrupted-TEMPLATE.md` (full reference)
-- `.agents/workflows/EVIDENCE-TEMPLATE.md` (evidence requirements)
+- If continuing: Load `step-[N+1]`
+- If fresh: Load `step-01-setup`
+- If error: Load error recovery

@@ -130,9 +130,9 @@ collections:
 Every step-[N]-[name].md gets new section:
 
 ```markdown
-## EVIDENCE COLLECTION
+## EVIDENCE COLLECTION & CHECKPOINT
 
-When closing this step via Beads, provide evidence:
+When closing this step via Beads, provide evidence and save the checkpoint metadata:
 
 bd update <step-id> --notes="
 EVIDENCE:
@@ -142,7 +142,12 @@ EVIDENCE:
 - Metrics: [success metrics satisfied: list them]
 - Files modified: [list file paths]
 - Test results: [if applicable, paste results]
-"
+
+CHECKPOINT:
+  last_completed_step: [current-step-id]
+" \
+--set-metadata last_completed_step=[current-step-id] \
+--set-metadata session_variables='[JSON_STRING]'
 ```
 
 **Step 2: Add pre-commit hook to enforce mandatory evidence**

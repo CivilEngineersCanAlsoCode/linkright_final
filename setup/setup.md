@@ -658,6 +658,26 @@ claude mcp list                       # Expect "agent-mail" in output
 install_precommit_guard(project_key=<abs-path>, code_repo_path=<abs-path>)
 ```
 
+### Beads Evidence Enforcement (Optional)
+
+To automatically enforce the mandatory evidence policy defined in `CLAUDE.md`, add this function to your `.zshrc` or `.bashrc`:
+
+```bash
+bd() {
+  if [[ "$*" == *"close"* ]]; then
+    # Run evidence validator
+    .agents/workflows/verify-beads-evidence.sh "bd $*"
+    if [ $? -ne 0 ]; then
+      return 1
+    fi
+  fi
+  # Call real beads binary
+  command bd "$@"
+}
+```
+
+This wrapper intercepts `bd close` and ensures the `--reason` string contains a valid `EVIDENCE:` block.
+
 ### Data Persistence
 
 Git-backed. Messages stored in Git repo (automatic, persistent).

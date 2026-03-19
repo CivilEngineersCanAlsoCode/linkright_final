@@ -1,65 +1,24 @@
-# MongoDB Configuration for Linkright
-# Version: 2.0
-# Purpose: Central data store for beads task tracking and project metadata
+# Linkright MongoDB Configuration
+# Version: 1.0.0
 
 database:
-  name: "linkright-prod"
-  version: "5.0+"
-  connection:
-    host: "${MONGODB_HOST:-localhost}"
-    port: "${MONGODB_PORT:-27017}"
-    username: "${MONGODB_USER}"
-    password: "${MONGODB_PASSWORD}"
-    ssl: true
-    replicaSet: "rs0"
+  name: "linkright_career"
+  host: "${MONGODB_HOST}"
+  port: 27017
+  fallback_mode: "memory"
 
 collections:
-  # Beads Task Tracking
-  issues:
-    name: "beads_issues"
+  - name: "career_signals"
+    description: "Atomic career events and professional evidence"
     indexes:
-      - keys: { id: 1 }
+      - field: "signal_id"
         unique: true
-      - keys: { status: 1, parent: 1 }
-        name: "status_parent_idx"
-      - keys: { created_date: -1 }
-        name: "date_idx"
+      - field: "type"
+    ttl_days: 0  # Permanent
 
-  # Release Metadata
-  releases:
-    name: "releases"
+  - name: "workflow_history"
+    description: "Execution logs and state snapshots for all workflows"
     indexes:
-      - keys: { version: 1 }
-        unique: true
-      - keys: { created_date: -1 }
-
-  # Agent Manifest
-  agents:
-    name: "agent_registry"
-    indexes:
-      - keys: { name: 1 }
-        unique: true
-      - keys: { module: 1 }
-
-retention:
-  closed_issues_days: 90
-  archives_days: 365
-  audit_logs_days: 30
-
-performance:
-  batch_size: 1000
-  read_preference: "primary"
-  write_concern:
-    w: "majority"
-    j: true
-    wtimeout: 5000
-
-backup:
-  enabled: true
-  schedule: "0 2 * * *"
-  retention_days: 30
-  location: "${BACKUP_BUCKET}"
-
-monitoring:
-  slow_query_threshold_ms: 100
-  profiling_level: 1
+      - field: "session_id"
+      - field: "workflow_id"
+    ttl_days: 90 # Auto-archive after 3 months

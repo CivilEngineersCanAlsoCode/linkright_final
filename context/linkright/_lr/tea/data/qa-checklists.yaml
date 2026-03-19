@@ -1,0 +1,45 @@
+# TEA Module Pre-Release Checklists
+# Version: 1.0.0
+
+checklists:
+  sync:
+    name: "Sync Outbound Quality Gate"
+    steps:
+      - id: "SYN-001"
+        item: "JD Parsing: All P0/P1 requirements extracted and categorized."
+      - id: "SYN-002"
+        item: "Signal Alignment: Every P0 requirement mapped to at least one user signal."
+      - id: "SYN-003"
+        item: "Uplift Calculation: Baseline and Final scores generated; Uplift > 15 pts."
+      - id: "SYN-004"
+        item: "Artifact Integrity: Resume HTML/CSS compiles without syntax errors."
+
+  flex:
+    name: "Flex Inbound Quality Gate"
+    steps:
+      - id: "FLX-001"
+        item: "Tone Mirroring: Content voice matches the established user persona."
+      - id: "FLX-002"
+        item: "Metric Density: 100% of posts include at least one quantifiable outcome."
+      - id: "FLX-003"
+        item: "Layout: No widow words or line overflows in social copy."
+
+  squick:
+    name: "Squick Delivery Quality Gate"
+    steps:
+      - id: "SQK-001"
+        item: "Atomicity: All 1-analysis through 4-implementation steps are atomic."
+      - id: "SQK-002"
+        item: "Beads Wiring: Every task closed has a corresponding EVIDENCE block."
+      - id: "SQK-003"
+        item: "Integration: No circular dependencies found in workflow.yaml."
+
+  global:
+    name: "Global Linkright System Gate"
+    steps:
+      - id: "SYS-001"
+        item: "Manifest Integrity: `validate-manifests.sh` returns 0 errors."
+      - id: "SYS-002"
+        item: "Persistence: All zero-byte config files populated and validated."
+      - id: "SYS-003"
+        item: "Security: No credentials or secrets detected in the work tree."

@@ -1,28 +1,18 @@
-workflow_id,name,module,path
-party-mode,Party Mode Orchestration,core,_lr/core/workflows/party-mode/workflow.yaml
-brainstorming,Professional Brainstorming,core,_lr/core/workflows/brainstorming/workflow.yaml
-lr-discuss,Linkright Group Discussion,core,_lr/core/workflows/lr-discuss/workflow.md
-context-gen,Context Generation,core,_lr/core/workflows/context-gen/workflow.yaml
-create-story,Story Creation,core,_lr/core/workflows/create-story/workflow.yaml
-dev-story,Development Story Execution,core,_lr/core/workflows/dev-story/workflow.yaml
-document-project,Project Documentation,core,_lr/core/workflows/document-project/workflow.yaml
-document-system,System Documentation,core,_lr/core/workflows/document-system/workflow.yaml
-sprint-planning,Sprint Planning,core,_lr/core/workflows/sprint-planning/workflow.yaml
-sprint-status,Sprint Status Review,core,_lr/core/workflows/sprint-status/workflow.yaml
-jd-optimize,Signal-Driven JD Optimization,sync,_lr/sync/workflows/jd-optimize/workflow.yaml
-outbound-campaign,Outbound Campaign Execution,sync,_lr/sync/workflows/outbound-campaign/workflow.yaml
-portfolio-deploy,Portfolio GitHub Deployment,sync,_lr/sync/workflows/portfolio-deploy/workflow.yaml
-application-track,Application Pipeline Tracking,sync,_lr/sync/workflows/application-track/workflow.yaml
-quick-optimize,Quick Resume Optimization,sync,_lr/sync/workflows/quick-optimize/workflow.yaml
-signal-capture,Career Signal Capture,sync,_lr/sync/workflows/signal-capture/workflow.yaml
-content-automation,Social Signal Amplification,flex,_lr/flex/workflows/content-automation/workflow.yaml
-enterprise-ship,Enterprise-Grade Delivery,squick,_lr/squick/workflows/enterprise-ship/workflow.md
-squick-analysis,Squick Phase 1: Analysis,squick,_lr/squick/workflows/1-analysis/workflow.yaml
-squick-plan,Squick Phase 2: Planning,squick,_lr/squick/workflows/2-plan/workflow.yaml
-squick-solutioning,Squick Phase 3: Solutioning,squick,_lr/squick/workflows/3-solutioning/workflow.yaml
-squick-implementation,Squick Phase 4: Implementation,squick,_lr/squick/workflows/4-implementation/workflow.yaml
-agent-builder,Linkright Builder: Agent,lrb,_lr/lrb/workflows/agent/workflow-create-agent.md
-module-builder,Linkright Builder: Module,lrb,_lr/lrb/workflows/module/workflow-create-module.md
-qa-builder,Linkright Builder: QA,lrb,_lr/lrb/workflows/qa/workflow-generate-tests.md
-narrative-craft,Professional Narrative Crafting,cis,_lr/cis/workflows/narrative-craft/workflow.yaml
-resume-validation,Resume Validation,tea,_lr/tea/workflows/resume-validation/workflow.yaml
+workflow_name,module,file_path,type,phase_coverage,step_count,description,status
+Signal-Driven JD Optimization,sync,_lr/sync/workflows/jd-optimize/workflow.yaml,engine,cev,76,Comprehensive career alignment engine,active
+Outbound Campaign Execution,sync,_lr/sync/workflows/outbound-campaign/workflow.yaml,engine,cev,61,Multi-channel outreach automation,active
+Portfolio GitHub Deployment,sync,_lr/sync/workflows/portfolio-deploy/workflow.yaml,engine,cev,58,Automated portfolio deployment,active
+Application Pipeline Tracking,sync,_lr/sync/workflows/application-track/workflow.yaml,engine,cev,13,Job application lifecycle management,active
+Quick Resume Optimization,sync,_lr/sync/workflows/quick-optimize/workflow.yaml,engine,cev,10,Rapid single-pass resume tuning,active
+Career Signal Capture,sync,_lr/sync/workflows/signal-capture/workflow.yaml,engine,cev,5,Deep career experience extraction,active
+Social Signal Amplification,flex,_lr/flex/workflows/content-automation/workflow.yaml,engine,cev,8,Automated brand building from signals,active
+Portfolio Github View,flex,_lr/flex/workflows/portfolio-deploy/steps/step-01-load-session-context.md,manual,cev,58,Visual portfolio generator,stub
+Squick Phase 1: Analysis,squick,_lr/squick/workflows/1-analysis/workflow.yaml,engine,ce,5,Rapid technical requirement analysis,active
+Squick Phase 2: Planning,squick,_lr/squick/workflows/2-plan/workflow.yaml,engine,ce,5,Atomic task decomposition and planning,active
+Squick Phase 3: Solutioning,squick,_lr/squick/workflows/3-solutioning/workflow.yaml,engine,ce,5,Architectural design and drafting,active
+Squick Phase 4: Implementation,squick,_lr/squick/workflows/4-implementation/workflow.yaml,engine,ce,5,Final delivery and verification,active
+Enterprise-Grade Delivery,squick,_lr/squick/workflows/enterprise-ship/workflow.md,manual,ev,0,High-compliance shipping protocol,stub
+Sprint Status Review,core,_lr/core/workflows/sprint-status/workflow.yaml,engine,,0,Automated sprint progress audit,stub
+Development Story Execution,core,_lr/core/workflows/dev-story/workflow.yaml,engine,,0,End-to-end task execution,stub
+Context Generation,core,_lr/core/workflows/context-gen/workflow.yaml,engine,c,1,Deep system context synthesis,active
+Resume Validation,tea,_lr/tea/workflows/resume-validation/workflow.yaml,engine,cv,10,Automated quality check for resumes,active

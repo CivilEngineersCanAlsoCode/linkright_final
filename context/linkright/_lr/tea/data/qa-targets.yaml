@@ -1,0 +1,28 @@
+# TEA Module Quality Targets & Benchmarks
+# Version: 1.0.0
+
+targets:
+  sync:
+    phase_coverage: 1.0  # Must have c, e, and v directories
+    min_step_count: 50
+    avg_uplift_pts: 25.0
+    persona_alignment_min: 0.85
+    metric_density_min: 0.90
+
+  flex:
+    phase_coverage: 0.8  # Must have c and e at minimum
+    min_step_count: 8
+    avg_engagement_proxy: 0.75
+    tone_consistency_min: 0.95
+
+  squick:
+    phase_coverage: 1.0
+    min_step_count: 5
+    atomicity_score: 1.0 # 100% atomic steps
+    resumption_success_rate: 1.0
+
+  global:
+    manifest_accuracy: 1.0
+    zero_byte_files: 0
+    broken_references: 0
+    unclaimed_beads_max: 5

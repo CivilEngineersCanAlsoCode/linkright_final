@@ -1,56 +1,26 @@
-# ChromaDB Configuration for Linkright
-# Version: 2.0
-# Purpose: Vector store for semantic search of resumes, JDs, and signal retrieval
+# Linkright ChromaDB Configuration
+# Version: 1.0.0
 
 database:
-  type: "chromadb"
-  persistence_path: "${CHROMADB_PATH:-./data/chromadb}"
-  collection_prefix: "linkright"
+  host: "${CHROMADB_HOST}"
+  port: 8000
+  tenant: "default_tenant"
+  database: "default_database"
+  fallback_mode: "file-based"
 
-collections:
-  resume_embeddings:
-    name: "resumes"
-    description: "Optimized resume embeddings for semantic matching"
-    metadata_fields:
-      - user_id
-      - version
-      - created_date
-      - signal_density
-
-  jd_embeddings:
-    name: "job_descriptions"
-    description: "Job description embeddings for signal alignment"
-    metadata_fields:
-      - company_id
-      - role_level
-      - domain
-      - requirements_count
-
-  signal_library:
-    name: "professional_signals"
-    description: "Pre-extracted professional signals indexed by skill/impact"
-    metadata_fields:
-      - signal_type
-      - context
-      - industry
-      - seniority_level
-
-embedding_model:
-  provider: "openai"
+embeddings:
   model: "text-embedding-3-small"
   dimensions: 1536
-  batch_size: 50
 
-similarity:
-  metric: "cosine"
-  threshold: 0.7
+collections:
+  - name: "sync_signals"
+    description: "Vector embeddings of career signals for semantic retrieval"
+    hnsw_space: "cosine"
 
-performance:
-  enable_query_cache: true
-  cache_ttl_seconds: 3600
-  max_results_per_query: 100
+  - name: "optimization_results"
+    description: "Successful optimization patterns and historical uplift"
+    hnsw_space: "l2"
 
-indexing:
-  enabled: true
-  schedule: "0 3 * * *"
-  rebuild_threshold: 0.2
+  - name: "qa_patterns"
+    description: "TEA module quality assurance and testing patterns"
+    hnsw_space: "cosine"

@@ -1,0 +1,51 @@
+# Linkright Workflow Checkpoint Schema (YAML)
+# Version: 1.0.0
+# Description: Standard schema for persisting session state in Beads metadata and MongoDB.
+
+checkpoint:
+  # Mandatory Fields
+  workflow_id:
+    type: string
+    description: "Unique identifier for the active workflow (e.g., jd-optimize)."
+    required: true
+
+  last_completed_step:
+    type: string
+    description: "The ID of the step most recently finished (e.g., step-04a)."
+    required: true
+
+  timestamp:
+    type: string
+    format: date-time
+    description: "ISO-8601 string of the last activity."
+    required: true
+
+  beads_issue_id:
+    type: string
+    description: "The Beads task ID tracking this session (e.g., sync-zas.wm-1.101)."
+    required: true
+
+  # Session Variables (Module-Specific)
+  session_variables:
+    type: object
+    required: true
+    description: "Key-value pairs of session state variables."
+    properties:
+      # Sync Module Examples
+      jd_id: { type: string }
+      persona_fit_primary: { type: string }
+      # Flex Module Examples
+      platform: { type: string }
+      content_type: { type: string }
+      # Squick Module Examples
+      sprint_id: { type: string }
+      velocity: { type: number }
+
+  # Optional Metadata
+  metadata:
+    type: object
+    description: "Additional non-core session data."
+    properties:
+      agent_id: { type: string }
+      system_version: { type: string }
+      user_id: { type: string }

@@ -1,0 +1,16 @@
+pattern_id,pattern_name,file_path,type,criticality
+TP-001,Accessibility Testing,tea/knowledge/accessibility-testing.md,visual,P1
+TP-002,API Request Validation,tea/knowledge/api-request.md,integration,P0
+TP-003,Contract Testing (Pact),tea/knowledge/contract-testing.md,integration,P0
+TP-004,Data Factories,tea/knowledge/data-factories.md,unit,P2
+TP-005,Error Handling Audit,tea/knowledge/error-handling.md,logic,P1
+TP-006,Fixture Architecture,tea/knowledge/fixture-architecture.md,infrastructure,P2
+TP-007,Network Error Monitoring,tea/knowledge/network-error-monitor.md,infrastructure,P1
+TP-008,Selector Resilience,tea/knowledge/selector-resilience.md,e2e,P1
+TP-009,Test Healing Patterns,tea/knowledge/test-healing-patterns.md,automation,P2
+TP-010,User Acceptance Testing,tea/knowledge/user-acceptance-testing.md,manual,P0
+TP-011,Visual Debugging,tea/knowledge/visual-debugging.md,visual,P3
+TP-012,Network Call Interception,tea/knowledge/intercept-network-call.md,integration,P1
+TP-013,CI Burn-in Strategy,tea/knowledge/ci-burn-in.md,infrastructure,P2
+TP-014,Auth Session Management,tea/knowledge/auth-session.md,security,P0
+TP-015,Feature Flag Testing,tea/knowledge/feature-flags.md,logic,P2
